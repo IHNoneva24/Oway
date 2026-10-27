@@ -426,3 +426,11 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# Oway: runtime SQLite database (created by the DL at first run)
+Oway/DL/data/*.db
+Oway/DL/data/*.db-journal
+
+# Oway: keep vendored libraries tracked
+!Oway/PL/vendor/**/*.lib
+!Oway/PL/vendor/**/*.dll

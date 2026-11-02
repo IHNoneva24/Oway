@@ -19,9 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\Maze.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Maze.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

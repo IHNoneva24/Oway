@@ -20,11 +20,18 @@
   </ItemGroup>
   <!-- PL source files only — BLL/DL compiled in their own projects -->
   <ItemGroup>
+    <ClCompile Include="src\game.cpp" />
+    <ClCompile Include="src\sizeSelect.cpp" />
+    <ClCompile Include="src\mainMenu.cpp" />
+    <ClCompile Include="src\ui.cpp" />
+    <ClCompile Include="src\screen.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
 
   <!-- PL headers only -->
   <ItemGroup>
+    <ClInclude Include="include\ui.h" />
+    <ClInclude Include="include\screen.h" />
     <ClInclude Include="include\enum.h" />
     <ClInclude Include="include\screens.h" />
   </ItemGroup>

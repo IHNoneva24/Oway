@@ -2,5 +2,8 @@
 
 // Screens of the game
 enum Screen {
-	MAINMENU
+	MAINMENU,
+	SIZESELECT,
+	GAME,
+	EXITGAME
 };

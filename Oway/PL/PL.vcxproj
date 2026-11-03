@@ -20,6 +20,9 @@
   </ItemGroup>
   <!-- PL source files only — BLL/DL compiled in their own projects -->
   <ItemGroup>
+    <ClCompile Include="src\win.cpp" />
+    <ClCompile Include="src\help.cpp" />
+    <ClCompile Include="src\assets.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\sizeSelect.cpp" />
     <ClCompile Include="src\mainMenu.cpp" />
@@ -30,6 +33,7 @@
 
   <!-- PL headers only -->
   <ItemGroup>
+    <ClInclude Include="include\assets.h" />
     <ClInclude Include="include\ui.h" />
     <ClInclude Include="include\screen.h" />
     <ClInclude Include="include\enum.h" />
@@ -112,6 +116,10 @@
       <AdditionalLibraryDirectories>$(ProjectDir)vendor\raylib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>winmm.lib;raylib.lib;gdi32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)assets" "$(OutDir)assets\" /E /I /Y /Q</Command>
+      <Message>Copying assets next to the executable</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
 
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

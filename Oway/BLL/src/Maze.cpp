@@ -15,6 +15,29 @@ bool IsValidMazeSize(int size) {
 	return size >= MIN_MAZE_SIZE && size <= MAX_MAZE_SIZE;
 }
 
+bool TryParseMazeSize(const char* text, int& size) {
+	if (text == nullptr || text[0] == '\0') {
+		return false;
+	}
+
+	int value = 0;
+
+	for (int i = 0; text[i] != '\0'; i++) {
+		if (text[i] < '0' || text[i] > '9' || i >= 3) {
+			return false;
+		}
+
+		value = value * 10 + (text[i] - '0');
+	}
+
+	if (!IsValidMazeSize(value)) {
+		return false;
+	}
+
+	size = value;
+	return true;
+}
+
 bool CreateMaze(Maze& maze, int width, int height) {
 	if (!IsValidMazeSize(width) || !IsValidMazeSize(height)) {
 		return false;

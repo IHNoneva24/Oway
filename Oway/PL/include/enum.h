@@ -5,5 +5,7 @@ enum Screen {
 	MAINMENU,
 	SIZESELECT,
 	GAME,
+	WIN,
+	HELP,
 	EXITGAME
 };

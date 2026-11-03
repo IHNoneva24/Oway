@@ -30,6 +30,10 @@ struct Maze {
 // Checks if a size is inside the allowed range (10 - 50)
 bool IsValidMazeSize(int size);
 
+// Converts text typed by the user to a maze size.
+// Returns false if the text is empty, has non-digit characters or is out of range
+bool TryParseMazeSize(const char* text, int& size);
+
 // Allocates the cells with all walls closed. Returns false on invalid size
 bool CreateMaze(Maze& maze, int width, int height);
 

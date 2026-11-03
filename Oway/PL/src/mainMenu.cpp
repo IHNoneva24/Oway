@@ -5,18 +5,35 @@ extern int screenW;
 extern int screenH;
 
 void DrawMainMenu(Screen& currentScreen) {
-	ClearBackground(COLOR_BACKGROUND);
+	DrawDungeonBackground();
 
-	DrawCenteredText("OWAY", 120, 80, RAYWHITE);
-	DrawCenteredText("Find the way out of the maze", 210, 22, GRAY);
+	float titleSize = Scaled(140);
+	float titleY = screenH * 0.15f;
+	int titleWidth = MeasureText("OWAY", static_cast<int>(titleSize));
 
-	float buttonX = screenW / 2.0f - 120;
+	DrawCenteredText("OWAY", titleY + Scaled(6), titleSize, BLACK);
+	DrawCenteredText("OWAY", titleY, titleSize, COLOR_ACCENT);
+	DrawCenteredText("Find the way out of the dungeon", titleY + titleSize + Scaled(10), Scaled(30), COLOR_TEXT_DIM);
 
-	if (DrawButton({ buttonX, 300, 240, 55 }, "Single player")) {
+	float torchSize = Scaled(96);
+	DrawTorch(screenW / 2.0f - titleWidth / 2.0f - torchSize - Scaled(30), titleY + Scaled(10), torchSize);
+	DrawTorch(screenW / 2.0f + titleWidth / 2.0f + Scaled(30), titleY + Scaled(10), torchSize);
+
+	float y = screenH * 0.48f;
+	float step = Scaled(95);
+
+	if (DrawCenteredButton(y, "Single player")) {
 		currentScreen = SIZESELECT;
 	}
 
-	if (DrawButton({ buttonX, 375, 240, 55 }, "Exit")) {
+	if (DrawCenteredButton(y + step, "How to play")) {
+		currentScreen = HELP;
+	}
+
+	if (DrawCenteredButton(y + step * 2, "Exit")) {
 		currentScreen = EXITGAME;
 	}
+
+	DrawText("F11 - fullscreen / window", static_cast<int>(Scaled(20)), screenH - static_cast<int>(Scaled(40)),
+		static_cast<int>(Scaled(22)), COLOR_TEXT_DIM);
 }

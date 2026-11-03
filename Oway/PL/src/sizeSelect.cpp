@@ -6,36 +6,105 @@
 extern int screenW;
 extern int screenH;
 
-static int selectedSize = MIN_MAZE_SIZE;
+static const int MAX_INPUT_LENGTH = 2;
+
+static char sizeInput[MAX_INPUT_LENGTH + 1] = "10";
+static int inputLength = 2;
+static bool showError = false;
+
+// Lets the user type only digits into the size box
+static void HandleTyping() {
+	int key = GetCharPressed();
+
+	while (key > 0) {
+		if (key >= '0' && key <= '9' && inputLength < MAX_INPUT_LENGTH) {
+			sizeInput[inputLength++] = static_cast<char>(key);
+			sizeInput[inputLength] = '\0';
+			showError = false;
+		}
+
+		key = GetCharPressed();
+	}
+
+	if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) && inputLength > 0) {
+		sizeInput[--inputLength] = '\0';
+		showError = false;
+	}
+}
+
+// Changes the size with the - and + buttons, always staying in range
+static void ChangeSize(int delta) {
+	int size = MIN_MAZE_SIZE;
+
+	if (TryParseMazeSize(sizeInput, size)) {
+		size += delta;
+	}
+
+	if (size < MIN_MAZE_SIZE) size = MIN_MAZE_SIZE;
+	if (size > MAX_MAZE_SIZE) size = MAX_MAZE_SIZE;
+
+	TextCopy(sizeInput, TextFormat("%d", size));
+	inputLength = TextLength(sizeInput);
+	showError = false;
+}
 
 void DrawSizeSelect(Screen& currentScreen) {
-	ClearBackground(COLOR_BACKGROUND);
-
-	DrawCenteredText("Choose maze size", 120, 40, RAYWHITE);
-	DrawCenteredText(TextFormat("%d x %d", selectedSize, selectedSize), 230, 60, COLOR_PLAYER);
-	DrawCenteredText(TextFormat("From %d to %d", MIN_MAZE_SIZE, MAX_MAZE_SIZE), 300, 20, GRAY);
+	DrawDungeonBackground();
+	HandleTyping();
 
 	float centerX = screenW / 2.0f;
+	float y = screenH * 0.2f;
 
-	// The buttons and keys never leave the allowed range
-	if ((DrawButton({ centerX - 200, 235, 60, 55 }, "-") || IsKeyPressedRepeat(KEY_LEFT) || IsKeyPressed(KEY_LEFT))
-		&& selectedSize > MIN_MAZE_SIZE) {
-		selectedSize--;
+	DrawCenteredText("Choose maze size", y, Scaled(70), COLOR_ACCENT);
+	DrawCenteredText(TextFormat("Type a number from %d to %d", MIN_MAZE_SIZE, MAX_MAZE_SIZE),
+		y + Scaled(95), Scaled(30), COLOR_TEXT_DIM);
+
+	// Input box with a blinking cursor
+	float boxWidth = Scaled(220);
+	float boxHeight = Scaled(100);
+	float boxY = y + Scaled(170);
+	Rectangle box = { centerX - boxWidth / 2, boxY, boxWidth, boxHeight };
+
+	DrawPanel(box);
+	DrawRectangleLinesEx(box, Scaled(3), showError ? COLOR_ERROR : COLOR_ACCENT);
+
+	const char* shown = (static_cast<int>(GetTime() * 2) % 2 == 0) ? TextFormat("%s_", sizeInput) : sizeInput;
+	DrawCenteredText(shown, boxY + Scaled(18), Scaled(64), RAYWHITE);
+
+	float smallButton = Scaled(100);
+
+	if (DrawButton({ box.x - smallButton - Scaled(30), boxY, smallButton, boxHeight }, "-")
+		|| IsKeyPressed(KEY_DOWN) || IsKeyPressedRepeat(KEY_DOWN)) {
+		ChangeSize(-1);
 	}
 
-	if ((DrawButton({ centerX + 140, 235, 60, 55 }, "+") || IsKeyPressedRepeat(KEY_RIGHT) || IsKeyPressed(KEY_RIGHT))
-		&& selectedSize < MAX_MAZE_SIZE) {
-		selectedSize++;
+	if (DrawButton({ box.x + boxWidth + Scaled(30), boxY, smallButton, boxHeight }, "+")
+		|| IsKeyPressed(KEY_UP) || IsKeyPressedRepeat(KEY_UP)) {
+		ChangeSize(1);
 	}
 
-	if (DrawButton({ centerX - 120, 360, 240, 55 }, "Start") || IsKeyPressed(KEY_ENTER)) {
+	if (showError) {
+		DrawCenteredText(TextFormat("Please enter a size between %d and %d", MIN_MAZE_SIZE, MAX_MAZE_SIZE),
+			boxY + boxHeight + Scaled(20), Scaled(28), COLOR_ERROR);
+	}
+
+	float buttonsY = boxY + boxHeight + Scaled(90);
+
+	if (DrawCenteredButton(buttonsY, "Start") || IsKeyPressed(KEY_ENTER)) {
+		int size = 0;
+
 		// A new random maze every time
-		if (StartGameSession(GetCurrentSession(), selectedSize, static_cast<unsigned int>(time(nullptr)))) {
+		if (TryParseMazeSize(sizeInput, size)
+			&& StartGameSession(GetCurrentSession(), size, static_cast<unsigned int>(time(nullptr)))) {
 			currentScreen = GAME;
+		}
+		else {
+			showError = true;
 		}
 	}
 
-	if (DrawButton({ centerX - 120, 435, 240, 55 }, "Back") || IsKeyPressed(KEY_ESCAPE)) {
+	if (DrawCenteredButton(buttonsY + Scaled(95), "Back") || IsKeyPressed(KEY_ESCAPE)) {
+		showError = false;
 		currentScreen = MAINMENU;
 	}
 }

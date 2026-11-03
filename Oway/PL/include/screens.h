@@ -5,3 +5,5 @@
 void DrawMainMenu(Screen& currentScreen);
 void DrawSizeSelect(Screen& currentScreen);
 void DrawGame(Screen& currentScreen);
+void DrawWin(Screen& currentScreen);
+void DrawHelp(Screen& currentScreen);

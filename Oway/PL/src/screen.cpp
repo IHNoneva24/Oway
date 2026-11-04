@@ -20,7 +20,8 @@ void UpdateScreen(Screen& currentScreen) {
 	case SIZESELECT: DrawSizeSelect(currentScreen); break;
 	case GAME:       DrawGame(currentScreen);       break;
 	case WIN:        DrawWin(currentScreen);        break;
-	case HELP:       DrawHelp(currentScreen);       break;
+	case HELP:        DrawHelp(currentScreen);        break;
+	case LEADERBOARD: DrawLeaderboard(currentScreen); break;
 	case EXITGAME:   break;
 	}
 }

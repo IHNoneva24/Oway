@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "assets.h"
+#include <cstring>
 
 extern int screenW;
 extern int screenH;
@@ -69,4 +70,43 @@ void DrawTorch(float x, float y, float size) {
 
 	DrawTexturePro(frame, { 0, 0, static_cast<float>(frame.width), static_cast<float>(frame.height) },
 		{ x, y, size, size }, { 0, 0 }, 0.0f, WHITE);
+}
+
+bool UpdateTextInput(char* text, int maxLength, bool digitsOnly) {
+	int length = static_cast<int>(strlen(text));
+	bool isChanged = false;
+	int key = GetCharPressed();
+
+	// Only printable ASCII characters can be typed
+	while (key > 0) {
+		bool isAllowed = digitsOnly ? (key >= '0' && key <= '9') : (key >= 32 && key <= 126);
+
+		if (isAllowed && length < maxLength) {
+			text[length++] = static_cast<char>(key);
+			text[length] = '\0';
+			isChanged = true;
+		}
+
+		key = GetCharPressed();
+	}
+
+	if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) && length > 0) {
+		text[--length] = '\0';
+		isChanged = true;
+	}
+
+	return isChanged;
+}
+
+void DrawTextBox(Rectangle box, const char* text, float fontSize, bool hasError) {
+	DrawPanel(box);
+	DrawRectangleLinesEx(box, Scaled(3), hasError ? COLOR_ERROR : COLOR_ACCENT);
+
+	bool isCursorVisible = static_cast<int>(GetTime() * 2) % 2 == 0;
+	const char* shown = isCursorVisible ? TextFormat("%s_", text) : text;
+	int size = static_cast<int>(fontSize);
+	int textWidth = MeasureText(text, size);
+
+	DrawText(shown, static_cast<int>(box.x + box.width / 2 - textWidth / 2),
+		static_cast<int>(box.y + box.height / 2 - fontSize / 2), size, RAYWHITE);
 }

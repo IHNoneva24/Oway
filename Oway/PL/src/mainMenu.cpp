@@ -19,18 +19,22 @@ void DrawMainMenu(Screen& currentScreen) {
 	DrawTorch(screenW / 2.0f - titleWidth / 2.0f - torchSize - Scaled(30), titleY + Scaled(10), torchSize);
 	DrawTorch(screenW / 2.0f + titleWidth / 2.0f + Scaled(30), titleY + Scaled(10), torchSize);
 
-	float y = screenH * 0.48f;
+	float y = screenH * 0.45f;
 	float step = Scaled(95);
 
 	if (DrawCenteredButton(y, "Single player")) {
 		currentScreen = SIZESELECT;
 	}
 
-	if (DrawCenteredButton(y + step, "How to play")) {
+	if (DrawCenteredButton(y + step, "Leaderboard")) {
+		currentScreen = LEADERBOARD;
+	}
+
+	if (DrawCenteredButton(y + step * 2, "How to play")) {
 		currentScreen = HELP;
 	}
 
-	if (DrawCenteredButton(y + step * 2, "Exit")) {
+	if (DrawCenteredButton(y + step * 3, "Exit")) {
 		currentScreen = EXITGAME;
 	}
 

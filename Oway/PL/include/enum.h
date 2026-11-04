@@ -7,5 +7,6 @@ enum Screen {
 	GAME,
 	WIN,
 	HELP,
+	LEADERBOARD,
 	EXITGAME
 };

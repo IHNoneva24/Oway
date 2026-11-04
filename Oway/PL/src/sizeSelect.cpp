@@ -9,28 +9,7 @@ extern int screenH;
 static const int MAX_INPUT_LENGTH = 2;
 
 static char sizeInput[MAX_INPUT_LENGTH + 1] = "10";
-static int inputLength = 2;
 static bool showError = false;
-
-// Lets the user type only digits into the size box
-static void HandleTyping() {
-	int key = GetCharPressed();
-
-	while (key > 0) {
-		if (key >= '0' && key <= '9' && inputLength < MAX_INPUT_LENGTH) {
-			sizeInput[inputLength++] = static_cast<char>(key);
-			sizeInput[inputLength] = '\0';
-			showError = false;
-		}
-
-		key = GetCharPressed();
-	}
-
-	if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) && inputLength > 0) {
-		sizeInput[--inputLength] = '\0';
-		showError = false;
-	}
-}
 
 // Changes the size with the - and + buttons, always staying in range
 static void ChangeSize(int delta) {
@@ -44,13 +23,15 @@ static void ChangeSize(int delta) {
 	if (size > MAX_MAZE_SIZE) size = MAX_MAZE_SIZE;
 
 	TextCopy(sizeInput, TextFormat("%d", size));
-	inputLength = TextLength(sizeInput);
 	showError = false;
 }
 
 void DrawSizeSelect(Screen& currentScreen) {
 	DrawDungeonBackground();
-	HandleTyping();
+
+	if (UpdateTextInput(sizeInput, MAX_INPUT_LENGTH, true)) {
+		showError = false;
+	}
 
 	float centerX = screenW / 2.0f;
 	float y = screenH * 0.2f;
@@ -59,17 +40,12 @@ void DrawSizeSelect(Screen& currentScreen) {
 	DrawCenteredText(TextFormat("Type a number from %d to %d", MIN_MAZE_SIZE, MAX_MAZE_SIZE),
 		y + Scaled(95), Scaled(30), COLOR_TEXT_DIM);
 
-	// Input box with a blinking cursor
 	float boxWidth = Scaled(220);
 	float boxHeight = Scaled(100);
 	float boxY = y + Scaled(170);
 	Rectangle box = { centerX - boxWidth / 2, boxY, boxWidth, boxHeight };
 
-	DrawPanel(box);
-	DrawRectangleLinesEx(box, Scaled(3), showError ? COLOR_ERROR : COLOR_ACCENT);
-
-	const char* shown = (static_cast<int>(GetTime() * 2) % 2 == 0) ? TextFormat("%s_", sizeInput) : sizeInput;
-	DrawCenteredText(shown, boxY + Scaled(18), Scaled(64), RAYWHITE);
+	DrawTextBox(box, sizeInput, Scaled(64), showError);
 
 	float smallButton = Scaled(100);
 

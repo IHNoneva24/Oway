@@ -19,10 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Leaderboard.h" />
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\Maze.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Leaderboard.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Maze.cpp" />
   </ItemGroup>

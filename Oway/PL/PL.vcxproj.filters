@@ -57,5 +57,8 @@
     <ClInclude Include="include\assets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="src\leaderboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

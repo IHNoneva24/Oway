@@ -2,6 +2,7 @@
 #include "enum.h"
 #include "screen.h"
 #include "assets.h"
+#include "Leaderboard.h"
 
 int main() {
     const int windowWidth = 1280;
@@ -15,6 +16,9 @@ int main() {
     SetExitKey(0);
 
     LoadAssets();
+
+    // The database is kept next to the executable. If it can't be opened the game still works without a leaderboard
+    InitLeaderboard(TextFormat("%sdata/oway.db", GetApplicationDirectory()));
 
     ToggleBorderlessWindowed();
 
@@ -32,6 +36,7 @@ int main() {
         EndDrawing();
     }
 
+    ShutdownLeaderboard();
     UnloadAssets();
     CloseWindow();
 }

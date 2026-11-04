@@ -31,5 +31,12 @@ void DrawDungeonBackground();
 // Draws a dark rectangle behind menus and dialogs
 void DrawPanel(Rectangle rect);
 
+// Adds the typed characters to "text" (up to maxLength) and handles backspace.
+// With digitsOnly only 0-9 are accepted. Returns true if the text changed
+bool UpdateTextInput(char* text, int maxLength, bool digitsOnly);
+
+// Draws an input box with the text and a blinking cursor, red border on error
+void DrawTextBox(Rectangle box, const char* text, float fontSize, bool hasError);
+
 // Draws an animated torch with its top left corner at x, y
 void DrawTorch(float x, float y, float size);

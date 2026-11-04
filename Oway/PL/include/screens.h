@@ -7,3 +7,4 @@ void DrawSizeSelect(Screen& currentScreen);
 void DrawGame(Screen& currentScreen);
 void DrawWin(Screen& currentScreen);
 void DrawHelp(Screen& currentScreen);
+void DrawLeaderboard(Screen& currentScreen);

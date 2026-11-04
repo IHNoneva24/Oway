@@ -20,6 +20,7 @@
   </ItemGroup>
   <!-- PL source files only — BLL/DL compiled in their own projects -->
   <ItemGroup>
+    <ClCompile Include="src\leaderboard.cpp" />
     <ClCompile Include="src\win.cpp" />
     <ClCompile Include="src\help.cpp" />
     <ClCompile Include="src\assets.cpp" />

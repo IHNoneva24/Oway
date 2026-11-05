@@ -39,6 +39,18 @@
     <ClCompile Include="src\game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\mazeView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\teamGame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\teamWin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="include\mazeView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\screen.h">
       <Filter>Header Files</Filter>
     </ClInclude>

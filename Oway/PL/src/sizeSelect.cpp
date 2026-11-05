@@ -1,10 +1,12 @@
 #include "screens.h"
 #include "ui.h"
 #include "Game.h"
+#include "TeamGame.h"
 #include <ctime>
 
 extern int screenW;
 extern int screenH;
+extern GameMode gameMode;
 
 static const int MAX_INPUT_LENGTH = 2;
 
@@ -26,6 +28,18 @@ static void ChangeSize(int delta) {
 	showError = false;
 }
 
+// Starts a single player or a team game, depending on the mode chosen in the main menu
+static bool StartSelectedGame(int size) {
+	// A new random maze every time
+	unsigned int seed = static_cast<unsigned int>(time(nullptr));
+
+	if (gameMode == TEAM_PLAY) {
+		return StartTeamSession(GetCurrentTeamSession(), size, seed);
+	}
+
+	return StartGameSession(GetCurrentSession(), size, seed);
+}
+
 void DrawSizeSelect(Screen& currentScreen) {
 	DrawDungeonBackground();
 
@@ -36,7 +50,7 @@ void DrawSizeSelect(Screen& currentScreen) {
 	float centerX = screenW / 2.0f;
 	float y = screenH * 0.2f;
 
-	DrawCenteredText("Choose maze size", y, Scaled(70), COLOR_ACCENT);
+	DrawCenteredText(gameMode == TEAM_PLAY ? "Team play - choose maze size" : "Choose maze size", y, Scaled(70), COLOR_ACCENT);
 	DrawCenteredText(TextFormat("Type a number from %d to %d", MIN_MAZE_SIZE, MAX_MAZE_SIZE),
 		y + Scaled(95), Scaled(30), COLOR_TEXT_DIM);
 
@@ -69,10 +83,8 @@ void DrawSizeSelect(Screen& currentScreen) {
 	if (DrawCenteredButton(buttonsY, "Start") || IsKeyPressed(KEY_ENTER)) {
 		int size = 0;
 
-		// A new random maze every time
-		if (TryParseMazeSize(sizeInput, size)
-			&& StartGameSession(GetCurrentSession(), size, static_cast<unsigned int>(time(nullptr)))) {
-			currentScreen = GAME;
+		if (TryParseMazeSize(sizeInput, size) && StartSelectedGame(size)) {
+			currentScreen = gameMode == TEAM_PLAY ? TEAMGAME : GAME;
 		}
 		else {
 			showError = true;

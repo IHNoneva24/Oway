@@ -25,6 +25,9 @@
     <ClCompile Include="src\help.cpp" />
     <ClCompile Include="src\assets.cpp" />
     <ClCompile Include="src\game.cpp" />
+    <ClCompile Include="src\mazeView.cpp" />
+    <ClCompile Include="src\teamGame.cpp" />
+    <ClCompile Include="src\teamWin.cpp" />
     <ClCompile Include="src\sizeSelect.cpp" />
     <ClCompile Include="src\mainMenu.cpp" />
     <ClCompile Include="src\ui.cpp" />
@@ -39,6 +42,7 @@
     <ClInclude Include="include\screen.h" />
     <ClInclude Include="include\enum.h" />
     <ClInclude Include="include\screens.h" />
+    <ClInclude Include="include\mazeView.h" />
   </ItemGroup>
 
   <!-- Link BLL and DL as static libraries -->

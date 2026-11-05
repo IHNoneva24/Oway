@@ -17,6 +17,8 @@ void LoadAssets() {
 		assets.torch[i] = LoadGameTexture(TextFormat("items/torch/torch_%d.png", i + 1));
 		assets.sideTorch[i] = LoadGameTexture(TextFormat("items/torch/side_torch_%d.png", i + 1));
 		assets.candlestick[i] = LoadGameTexture(TextFormat("items/torch/candlestick_1_%d.png", i + 1));
+		assets.flame[i] = LoadGameTexture(TextFormat("items/flamethrower/flamethrower_1_%d.png", i + 1));
+		assets.spikes[i] = LoadGameTexture(TextFormat("items/peaks/peaks_%d.png", i + 1));
 	}
 }
 
@@ -28,6 +30,8 @@ void UnloadAssets() {
 		UnloadTexture(assets.torch[i]);
 		UnloadTexture(assets.sideTorch[i]);
 		UnloadTexture(assets.candlestick[i]);
+		UnloadTexture(assets.flame[i]);
+		UnloadTexture(assets.spikes[i]);
 	}
 }
 

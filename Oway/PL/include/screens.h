@@ -6,5 +6,7 @@ void DrawMainMenu(Screen& currentScreen);
 void DrawSizeSelect(Screen& currentScreen);
 void DrawGame(Screen& currentScreen);
 void DrawWin(Screen& currentScreen);
+void DrawTeamGame(Screen& currentScreen);
+void DrawTeamWin(Screen& currentScreen);
 void DrawHelp(Screen& currentScreen);
 void DrawLeaderboard(Screen& currentScreen);

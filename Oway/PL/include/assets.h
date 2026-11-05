@@ -12,6 +12,8 @@ struct GameAssets {
 	Texture2D torch[ANIMATION_FRAMES];
 	Texture2D sideTorch[ANIMATION_FRAMES];
 	Texture2D candlestick[ANIMATION_FRAMES];
+	Texture2D flame[ANIMATION_FRAMES];  // lava cells in team mode
+	Texture2D spikes[ANIMATION_FRAMES]; // frame 0 = up, frame 3 = down
 };
 
 // Loads all textures once at the start of the game

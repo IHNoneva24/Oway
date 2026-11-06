@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Lobby.h" />
     <ClInclude Include="include\Network.h" />
     <ClInclude Include="include\RaceGame.h" />
     <ClInclude Include="include\Leaderboard.h" />
@@ -27,6 +28,7 @@
     <ClInclude Include="include\Maze.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Lobby.cpp" />
     <ClCompile Include="src\Network.cpp" />
     <ClCompile Include="src\RaceGame.cpp" />
     <ClCompile Include="src\Leaderboard.cpp" />

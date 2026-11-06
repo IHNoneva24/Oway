@@ -20,6 +20,7 @@
   </ItemGroup>
   <!-- PL source files only — BLL/DL compiled in their own projects -->
   <ItemGroup>
+    <ClCompile Include="src\lobby.cpp" />
     <ClCompile Include="src\raceWin.cpp" />
     <ClCompile Include="src\raceGame.cpp" />
     <ClCompile Include="src\modeSelect.cpp" />

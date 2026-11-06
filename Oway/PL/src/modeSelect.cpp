@@ -5,6 +5,7 @@
 extern int screenW;
 extern int screenH;
 extern GameMode gameMode;
+extern bool isLanGame;
 
 // How a game mode card looks
 struct ModeCard {
@@ -126,8 +127,14 @@ static void DrawCenteredTextIn(const char* text, Rectangle area, float y, float 
 	DrawText(text, static_cast<int>(area.x + area.width / 2 - MeasureText(text, size) / 2), static_cast<int>(y), size, RAYWHITE);
 }
 
-// Two buttons in a column on a selected multiplayer card. Returns true when "Local" is clicked
-static bool DrawMultiplayerChoice(Rectangle card) {
+enum MultiplayerChoice {
+	CHOICE_NONE,
+	CHOICE_LOCAL,
+	CHOICE_LAN
+};
+
+// Two buttons in a column on a selected multiplayer card
+static MultiplayerChoice DrawMultiplayerChoice(Rectangle card) {
 	float width = card.width * 0.7f;
 	float height = card.width * 0.17f;
 	float x = card.x + card.width / 2 - width / 2;
@@ -135,13 +142,20 @@ static bool DrawMultiplayerChoice(Rectangle card) {
 
 	DrawCenteredTextIn("HOW DO YOU PLAY?", card, y - height * 0.9f, card.width * 0.07f);
 
-	bool isLocalClicked = DrawModeButton({ x, y, width, height }, "LOCAL", true);
-	DrawModeButton({ x, y + height * 1.7f, width, height }, "CO-OP", false);
+	MultiplayerChoice choice = CHOICE_NONE;
+
+	if (DrawModeButton({ x, y, width, height }, "LOCAL", true)) {
+		choice = CHOICE_LOCAL;
+	}
+
+	if (DrawModeButton({ x, y + height * 1.7f, width, height }, "CO-OP", true)) {
+		choice = CHOICE_LAN;
+	}
 
 	DrawCenteredTextIn("Same keyboard", card, y + height + Scaled(4), card.width * 0.045f);
-	DrawCenteredTextIn("LAN - coming soon", card, y + height * 2.7f + Scaled(4), card.width * 0.045f);
+	DrawCenteredTextIn("Two computers, same network", card, y + height * 2.7f + Scaled(4), card.width * 0.045f);
 
-	return isLocalClicked;
+	return choice;
 }
 
 void DrawModeSelect(Screen& currentScreen) {
@@ -194,10 +208,13 @@ void DrawModeSelect(Screen& currentScreen) {
 			DrawRectangleRec(card, { 0, 0, 0, 170 });
 			DrawRectangleLinesEx(card, Scaled(5), COLOR_ACCENT);
 
-			if (DrawMultiplayerChoice(card)) {
+			MultiplayerChoice choice = DrawMultiplayerChoice(card);
+
+			if (choice != CHOICE_NONE) {
 				gameMode = CARDS[i].mode;
+				isLanGame = choice == CHOICE_LAN;
 				selectedCard = -1;
-				currentScreen = SIZESELECT;
+				currentScreen = isLanGame ? LOBBY : SIZESELECT;
 			}
 		}
 		else if (isHover) {
@@ -217,6 +234,7 @@ void DrawModeSelect(Screen& currentScreen) {
 			}
 			else {
 				gameMode = CARDS[i].mode;
+				isLanGame = false;
 				selectedCard = -1;
 				currentScreen = SIZESELECT;
 			}

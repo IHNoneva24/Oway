@@ -98,6 +98,31 @@ bool UpdateTextInput(char* text, int maxLength, bool digitsOnly) {
 	return isChanged;
 }
 
+bool UpdateFilteredTextInput(char* text, int maxLength, const char* allowedCharacters) {
+	int length = static_cast<int>(strlen(text));
+	bool isChanged = false;
+	int key = GetCharPressed();
+
+	while (key > 0) {
+		bool isAllowed = key < 128 && strchr(allowedCharacters, key) != nullptr;
+
+		if (isAllowed && length < maxLength) {
+			text[length++] = static_cast<char>(key);
+			text[length] = 0;
+			isChanged = true;
+		}
+
+		key = GetCharPressed();
+	}
+
+	if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) && length > 0) {
+		text[--length] = 0;
+		isChanged = true;
+	}
+
+	return isChanged;
+}
+
 void DrawTextBox(Rectangle box, const char* text, float fontSize, bool hasError) {
 	DrawPanel(box);
 	DrawRectangleLinesEx(box, Scaled(3), hasError ? COLOR_ERROR : COLOR_ACCENT);

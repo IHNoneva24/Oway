@@ -13,3 +13,4 @@ void DrawLeaderboard(Screen& currentScreen);
 void DrawModeSelect(Screen& currentScreen);
 void DrawRaceGame(Screen& currentScreen);
 void DrawRaceWin(Screen& currentScreen);
+void DrawLobby(Screen& currentScreen);

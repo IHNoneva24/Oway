@@ -47,5 +47,11 @@
     <ClInclude Include="include\Network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="src\Lobby.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="include\Lobby.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

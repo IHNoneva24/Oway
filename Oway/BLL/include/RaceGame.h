@@ -28,6 +28,10 @@ void SetRacePaused(RaceSession& session, bool isPaused);
 // Moves one racer a cell in the racer's own maze. Returns true if the racer moved
 bool TryMoveRacer(RaceSession& session, int racer, Direction direction);
 
+// LAN: puts the other player where the other computer says. Positions outside the maze are ignored
+void ApplyRemoteRacer(RaceSession& session, int racer, int x, int y, int moves, Direction facing,
+	bool hasEscaped, float escapeSeconds);
+
 // Adds the frame time while the race is running
 void UpdateRace(RaceSession& session, float deltaSeconds);
 

@@ -1,10 +1,37 @@
 #include "screens.h"
 #include "ui.h"
 #include "TeamGame.h"
+#include "Lobby.h"
+#include "lanSession.h"
 #include <ctime>
 
 extern int screenW;
 extern int screenH;
+extern bool isLanGame;
+
+// LAN: only the host can start a new game, the other player waits for it
+static void DrawLanButtons(const TeamSession& session, Screen& currentScreen, float y) {
+	UpdateLanSession(currentScreen);
+
+	if (DrawLanNotice(currentScreen) || currentScreen != TEAMWIN) {
+		return;
+	}
+
+	if (IsHost()) {
+		if (DrawCenteredButton(y, "Play again")) {
+			HostLanRematch(session.maze.width, currentScreen);
+		}
+	}
+	else {
+		DrawCenteredText("Waiting for the host to play again...", y + Scaled(20), Scaled(28), COLOR_TEXT_DIM);
+	}
+
+	if (DrawCenteredButton(y + Scaled(95), "Leave") || IsKeyPressed(KEY_ESCAPE)) {
+		ToggleLanLeaveMenu();
+	}
+
+	DrawLanLeaveMenu(currentScreen);
+}
 
 void DrawTeamWin(Screen& currentScreen) {
 	TeamSession& session = GetCurrentTeamSession();
@@ -30,6 +57,11 @@ void DrawTeamWin(Screen& currentScreen) {
 		session.heroes[HERO_FIRE].moves, session.heroes[HERO_WATER].moves), y + Scaled(110), Scaled(36), RAYWHITE);
 
 	y += Scaled(220);
+
+	if (isLanGame) {
+		DrawLanButtons(session, currentScreen, y);
+		return;
+	}
 
 	if (DrawCenteredButton(y, "Play again")) {
 		RestartTeamSession(session, static_cast<unsigned int>(time(nullptr)));

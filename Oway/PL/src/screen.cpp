@@ -7,6 +7,7 @@ int screenH;
 
 // Selected in the main menu, used by the size select screen to start the right game
 GameMode gameMode = SINGLE_PLAYER;
+bool isLanGame = false; // true when the multiplayer game is played over the network
 
 void InitScreens(int width, int height) {
 	screenW = width;
@@ -26,6 +27,7 @@ void UpdateScreen(Screen& currentScreen) {
 	case TEAMGAME:   DrawTeamGame(currentScreen);   break;
 	case TEAMWIN:    DrawTeamWin(currentScreen);    break;
 	case MODESELECT: DrawModeSelect(currentScreen); break;
+	case LOBBY:      DrawLobby(currentScreen);      break;
 	case RACEGAME:   DrawRaceGame(currentScreen);   break;
 	case RACEWIN:    DrawRaceWin(currentScreen);    break;
 	case HELP:        DrawHelp(currentScreen);        break;

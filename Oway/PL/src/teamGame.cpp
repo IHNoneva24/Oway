@@ -3,11 +3,14 @@
 #include "assets.h"
 #include "mazeView.h"
 #include "TeamGame.h"
+#include "LanGame.h"
+#include "lanSession.h"
 #include <ctime>
 #include <cmath>
 
 extern int screenW;
 extern int screenH;
+extern bool isLanGame;
 
 // A held key moves the hero again after these delays (in seconds).
 // Every hero has its own timer, so both players can hold their keys at the same time
@@ -40,10 +43,25 @@ static void HandleHeroKey(TeamSession& session, Hero hero, int key, Direction di
 	}
 }
 
-// Fire hero - WASD, water hero - arrow keys
+// Fire hero - WASD, water hero - arrow keys.
+// In LAN this computer moves only its own hero (host - fire, other player - water), with any of the two key sets
 static void HandleMovement(TeamSession& session) {
 	moveTimers[HERO_FIRE] -= GetFrameTime();
 	moveTimers[HERO_WATER] -= GetFrameTime();
+
+	if (isLanGame) {
+		Hero local = static_cast<Hero>(GetLocalPlayer());
+
+		HandleHeroKey(session, local, KEY_W, DIRECTION_UP);
+		HandleHeroKey(session, local, KEY_D, DIRECTION_RIGHT);
+		HandleHeroKey(session, local, KEY_S, DIRECTION_DOWN);
+		HandleHeroKey(session, local, KEY_A, DIRECTION_LEFT);
+		HandleHeroKey(session, local, KEY_UP, DIRECTION_UP);
+		HandleHeroKey(session, local, KEY_RIGHT, DIRECTION_RIGHT);
+		HandleHeroKey(session, local, KEY_DOWN, DIRECTION_DOWN);
+		HandleHeroKey(session, local, KEY_LEFT, DIRECTION_LEFT);
+		return;
+	}
 
 	HandleHeroKey(session, HERO_FIRE, KEY_W, DIRECTION_UP);
 	HandleHeroKey(session, HERO_FIRE, KEY_D, DIRECTION_RIGHT);
@@ -169,7 +187,8 @@ static void DrawTeamHud(const TeamSession& session) {
 		DrawText(TextFormat("Gems left: %d", session.gemsLeft), static_cast<int>(Scaled(830)), textY, fontSize, RAYWHITE);
 	}
 
-	const char* hint = "ESC - pause";
+	const char* hint = !isLanGame ? "ESC - pause"
+		: (GetLocalPlayer() == HERO_FIRE ? "You are FIRE  |  ESC - menu" : "You are WATER  |  ESC - menu");
 	DrawText(hint, screenW - MeasureText(hint, fontSize) - static_cast<int>(Scaled(30)), textY, fontSize, COLOR_TEXT_DIM);
 
 	// Message under the HUD after a hero stepped on the wrong thing
@@ -204,15 +223,42 @@ static void DrawTeamPauseMenu(TeamSession& session, Screen& currentScreen) {
 	}
 }
 
+// LAN: sends this computer's hero and puts the other hero where the network says
+static void SyncLanTeam(TeamSession& session, Screen& currentScreen) {
+	int local = GetLocalPlayer();
+	SendLocalPlayer(session.heroes[local]);
+	UpdateLanSession(currentScreen);
+
+	const RemotePlayer& remote = GetRemotePlayer();
+
+	if (remote.hasUpdate) {
+		ApplyRemoteHero(session, static_cast<Hero>(1 - local), remote.x, remote.y, remote.moves, remote.facing);
+	}
+}
+
 void DrawTeamGame(Screen& currentScreen) {
 	TeamSession& session = GetCurrentTeamSession();
 
+	// In LAN ESC doesn't pause, because the other player keeps playing
 	if (IsKeyPressed(KEY_ESCAPE)) {
-		SetTeamPaused(session, !session.isPaused);
+		if (isLanGame) {
+			ToggleLanLeaveMenu();
+		}
+		else {
+			SetTeamPaused(session, !session.isPaused);
+		}
 	}
 
 	HandleMovement(session);
 	UpdateTeamGame(session, GetFrameTime());
+
+	if (isLanGame) {
+		SyncLanTeam(session, currentScreen);
+
+		if (currentScreen != TEAMGAME) {
+			return;
+		}
+	}
 
 	ClearBackground(COLOR_BACKGROUND);
 	DrawTeamMaze(session);
@@ -220,6 +266,10 @@ void DrawTeamGame(Screen& currentScreen) {
 
 	if (session.isPaused) {
 		DrawTeamPauseMenu(session, currentScreen);
+	}
+
+	if (isLanGame && (DrawLanNotice(currentScreen) || DrawLanLeaveMenu(currentScreen))) {
+		return;
 	}
 
 	if (session.isFinished) {

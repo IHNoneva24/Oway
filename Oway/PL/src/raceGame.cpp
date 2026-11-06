@@ -3,10 +3,13 @@
 #include "assets.h"
 #include "mazeView.h"
 #include "RaceGame.h"
+#include "LanGame.h"
+#include "lanSession.h"
 #include <ctime>
 
 extern int screenW;
 extern int screenH;
+extern bool isLanGame;
 
 static const float VIEW_MARGIN = 20.0f;
 
@@ -20,8 +23,25 @@ static const int RACER_KEY_CODES[RACER_COUNT][4] = {
 	{ KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT }
 };
 
-// Player 1 moves with WASD, player 2 with the arrow keys
+// Player 1 moves with WASD, player 2 with the arrow keys.
+// In LAN this computer moves only its own racer, with any of the two key sets
 static void HandleMovement(RaceSession& session) {
+	if (isLanGame) {
+		int local = GetLocalPlayer();
+
+		for (int dir = 0; dir < 4; dir++) {
+			for (int keys = 0; keys < RACER_COUNT; keys++) {
+				int key = RACER_KEY_CODES[keys][dir];
+
+				if (IsKeyPressed(key) || IsKeyPressedRepeat(key)) {
+					TryMoveRacer(session, local, static_cast<Direction>(dir));
+				}
+			}
+		}
+
+		return;
+	}
+
 	for (int racer = 0; racer < RACER_COUNT; racer++) {
 		for (int dir = 0; dir < 4; dir++) {
 			int key = RACER_KEY_CODES[racer][dir];
@@ -39,7 +59,8 @@ static void DrawRacerView(const RaceSession& session, int racer, Rectangle area)
 	bool isOut = session.hasEscaped[racer];
 
 	float labelSize = Scaled(30);
-	const char* label = TextFormat("Player %d (%s)  -  %d moves", racer + 1, RACER_KEYS[racer], player.moves);
+	const char* who = !isLanGame ? RACER_KEYS[racer] : (racer == GetLocalPlayer() ? "you" : "LAN");
+	const char* label = TextFormat("Player %d (%s)  -  %d moves", racer + 1, who, player.moves);
 	int labelWidth = MeasureText(label, static_cast<int>(labelSize));
 
 	DrawText(label, static_cast<int>(area.x + area.width / 2 - labelWidth / 2), static_cast<int>(area.y),
@@ -106,15 +127,45 @@ static void DrawRacePauseMenu(RaceSession& session, Screen& currentScreen) {
 	}
 }
 
+// LAN: sends this computer's racer and puts the other racer where the network says
+static void SyncLanRace(RaceSession& session, Screen& currentScreen) {
+	int local = GetLocalPlayer();
+	SendLocalPlayer(session.racers[local]);
+
+	if (session.hasEscaped[local]) {
+		SendLocalEscape(session.escapeSeconds[local]);
+	}
+
+	UpdateLanSession(currentScreen);
+
+	const RemotePlayer& remote = GetRemotePlayer();
+	ApplyRemoteRacer(session, 1 - local, remote.x, remote.y, remote.moves, remote.facing,
+		remote.hasEscaped, remote.escapeSeconds);
+}
+
 void DrawRaceGame(Screen& currentScreen) {
 	RaceSession& session = GetCurrentRaceSession();
 
+	// In LAN ESC doesn't pause, because the other player keeps playing
 	if (IsKeyPressed(KEY_ESCAPE)) {
-		SetRacePaused(session, !session.isPaused);
+		if (isLanGame) {
+			ToggleLanLeaveMenu();
+		}
+		else {
+			SetRacePaused(session, !session.isPaused);
+		}
 	}
 
 	HandleMovement(session);
 	UpdateRace(session, GetFrameTime());
+
+	if (isLanGame) {
+		SyncLanRace(session, currentScreen);
+
+		if (currentScreen != RACEGAME) {
+			return;
+		}
+	}
 
 	ClearBackground(COLOR_BACKGROUND);
 
@@ -133,6 +184,10 @@ void DrawRaceGame(Screen& currentScreen) {
 
 	if (session.isPaused) {
 		DrawRacePauseMenu(session, currentScreen);
+	}
+
+	if (isLanGame && (DrawLanNotice(currentScreen) || DrawLanLeaveMenu(currentScreen))) {
+		return;
 	}
 
 	if (session.isFinished) {

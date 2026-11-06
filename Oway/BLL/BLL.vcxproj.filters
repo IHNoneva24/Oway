@@ -41,5 +41,23 @@
     <ClInclude Include="include\RaceGame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="src\Network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="include\Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClCompile Include="src\Lobby.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="include\Lobby.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClCompile Include="src\LanGame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="include\LanGame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

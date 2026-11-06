@@ -3,6 +3,7 @@
 #include "screen.h"
 #include "assets.h"
 #include "Leaderboard.h"
+#include "Network.h"
 
 int main() {
     const int windowWidth = 1280;
@@ -20,6 +21,9 @@ int main() {
     // The database is kept next to the executable. If it can't be opened the game still works without a leaderboard
     InitLeaderboard(TextFormat("%sdata/oway.db", GetApplicationDirectory()));
 
+    // Without the network the game still works, only LAN co-op is unavailable
+    InitNetwork();
+
     ToggleBorderlessWindowed();
 
     Screen currentScreen = MAINMENU;
@@ -36,6 +40,7 @@ int main() {
         EndDrawing();
     }
 
+    ShutdownNetwork();
     ShutdownLeaderboard();
     UnloadAssets();
     CloseWindow();

@@ -35,6 +35,9 @@ void DrawPanel(Rectangle rect);
 // With digitsOnly only 0-9 are accepted. Returns true if the text changed
 bool UpdateTextInput(char* text, int maxLength, bool digitsOnly);
 
+// Like UpdateTextInput, but only the characters in "allowedCharacters" can be typed
+bool UpdateFilteredTextInput(char* text, int maxLength, const char* allowedCharacters);
+
 // Draws an input box with the text and a blinking cursor, red border on error
 void DrawTextBox(Rectangle box, const char* text, float fontSize, bool hasError);
 

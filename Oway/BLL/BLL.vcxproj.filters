@@ -35,5 +35,11 @@
     <ClInclude Include="include\Leaderboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="src\RaceGame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="include\RaceGame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

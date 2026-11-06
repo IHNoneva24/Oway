@@ -25,6 +25,9 @@ void UpdateScreen(Screen& currentScreen) {
 	case WIN:        DrawWin(currentScreen);        break;
 	case TEAMGAME:   DrawTeamGame(currentScreen);   break;
 	case TEAMWIN:    DrawTeamWin(currentScreen);    break;
+	case MODESELECT: DrawModeSelect(currentScreen); break;
+	case RACEGAME:   DrawRaceGame(currentScreen);   break;
+	case RACEWIN:    DrawRaceWin(currentScreen);    break;
 	case HELP:        DrawHelp(currentScreen);        break;
 	case LEADERBOARD: DrawLeaderboard(currentScreen); break;
 	case EXITGAME:   break;

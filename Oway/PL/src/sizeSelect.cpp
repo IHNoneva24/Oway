@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "Game.h"
 #include "TeamGame.h"
+#include "RaceGame.h"
 #include <ctime>
 
 extern int screenW;
@@ -28,7 +29,7 @@ static void ChangeSize(int delta) {
 	showError = false;
 }
 
-// Starts a single player or a team game, depending on the mode chosen in the main menu
+// Starts a single player, race or team game, depending on the mode chosen in the main menu
 static bool StartSelectedGame(int size) {
 	// A new random maze every time
 	unsigned int seed = static_cast<unsigned int>(time(nullptr));
@@ -37,7 +38,28 @@ static bool StartSelectedGame(int size) {
 		return StartTeamSession(GetCurrentTeamSession(), size, seed);
 	}
 
+	if (gameMode == RACE) {
+		return StartRaceSession(GetCurrentRaceSession(), size, seed);
+	}
+
 	return StartGameSession(GetCurrentSession(), size, seed);
+}
+
+static const char* GetSizeSelectTitle() {
+	switch (gameMode) {
+	case RACE:      return "Race - choose maze size";
+	case TEAM_PLAY: return "Team play - choose maze size";
+	default:        return "Choose maze size";
+	}
+}
+
+// The game screen of the chosen mode
+static Screen GetGameScreen() {
+	switch (gameMode) {
+	case RACE:      return RACEGAME;
+	case TEAM_PLAY: return TEAMGAME;
+	default:        return GAME;
+	}
 }
 
 void DrawSizeSelect(Screen& currentScreen) {
@@ -50,7 +72,7 @@ void DrawSizeSelect(Screen& currentScreen) {
 	float centerX = screenW / 2.0f;
 	float y = screenH * 0.2f;
 
-	DrawCenteredText(gameMode == TEAM_PLAY ? "Team play - choose maze size" : "Choose maze size", y, Scaled(70), COLOR_ACCENT);
+	DrawCenteredText(GetSizeSelectTitle(), y, Scaled(70), COLOR_ACCENT);
 	DrawCenteredText(TextFormat("Type a number from %d to %d", MIN_MAZE_SIZE, MAX_MAZE_SIZE),
 		y + Scaled(95), Scaled(30), COLOR_TEXT_DIM);
 
@@ -84,7 +106,7 @@ void DrawSizeSelect(Screen& currentScreen) {
 		int size = 0;
 
 		if (TryParseMazeSize(sizeInput, size) && StartSelectedGame(size)) {
-			currentScreen = gameMode == TEAM_PLAY ? TEAMGAME : GAME;
+			currentScreen = GetGameScreen();
 		}
 		else {
 			showError = true;
@@ -93,6 +115,6 @@ void DrawSizeSelect(Screen& currentScreen) {
 
 	if (DrawCenteredButton(buttonsY + Scaled(95), "Back") || IsKeyPressed(KEY_ESCAPE)) {
 		showError = false;
-		currentScreen = MAINMENU;
+		currentScreen = MODESELECT;
 	}
 }

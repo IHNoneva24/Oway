@@ -9,9 +9,37 @@ static Texture2D LoadGameTexture(const char* relativePath) {
 	return LoadTexture(TextFormat("%sassets/%s", GetApplicationDirectory(), relativePath));
 }
 
+// The character sheet marks every sprite with small blue corners. They are removed when the sheet is loaded,
+// only in the corners, because the same blue is used inside some sprites
+static Texture2D LoadCharacterSheet(const char* relativePath) {
+	const Color MARKER = { 98, 171, 212, 255 };
+	const int CORNER = 3;
+
+	Image image = LoadImage(TextFormat("%sassets/%s", GetApplicationDirectory(), relativePath));
+	ImageFormat(&image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+	Color* pixels = static_cast<Color*>(image.data);
+
+	for (int y = 0; y < image.height; y++) {
+		for (int x = 0; x < image.width; x++) {
+			int cellX = x % TILE_SIZE;
+			int cellY = y % TILE_SIZE;
+			bool isCorner = (cellX < CORNER || cellX >= TILE_SIZE - CORNER) && (cellY < CORNER || cellY >= TILE_SIZE - CORNER);
+			Color& pixel = pixels[y * image.width + x];
+
+			if (isCorner && pixel.r == MARKER.r && pixel.g == MARKER.g && pixel.b == MARKER.b) {
+				pixel = BLANK;
+			}
+		}
+	}
+
+	Texture2D texture = LoadTextureFromImage(image);
+	UnloadImage(image);
+	return texture;
+}
+
 void LoadAssets() {
 	assets.tileset = LoadGameTexture("tileset/Dungeon_Tileset.png");
-	assets.characters = LoadGameTexture("tileset/Dungeon_Character.png");
+	assets.characters = LoadCharacterSheet("tileset/Dungeon_Character.png");
 
 	for (int i = 0; i < ANIMATION_FRAMES; i++) {
 		assets.torch[i] = LoadGameTexture(TextFormat("items/torch/torch_%d.png", i + 1));

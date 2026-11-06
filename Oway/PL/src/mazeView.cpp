@@ -35,38 +35,55 @@ static bool IsFloorTile(const Maze& maze, int tileX, int tileY) {
 	return false;
 }
 
-float GetTileSize(const Maze& maze) {
-	float availableWidth = screenW - Scaled(MAZE_MARGIN) * 2;
-	float availableHeight = screenH - Scaled(HUD_HEIGHT) - Scaled(MAZE_MARGIN) * 2;
-	float tileWidth = availableWidth / (maze.width * 2 + 1);
-	float tileHeight = availableHeight / (maze.height * 2 + 1);
+// The whole screen under the HUD, used when one maze fills the screen
+static Rectangle GetFullScreenArea() {
+	float margin = Scaled(MAZE_MARGIN);
+	float top = Scaled(HUD_HEIGHT) + margin;
+	return { margin, top, screenW - margin * 2, screenH - top - margin };
+}
+
+float GetTileSizeIn(const Maze& maze, Rectangle area) {
+	float tileWidth = area.width / (maze.width * 2 + 1);
+	float tileHeight = area.height / (maze.height * 2 + 1);
 
 	// Whole pixels keep the pixel art sharp
 	int size = static_cast<int>(tileWidth < tileHeight ? tileWidth : tileHeight);
 	return static_cast<float>(size < 2 ? 2 : size);
 }
 
-// Top left corner of the maze, centered under the HUD
-static Vector2 GetMazeOffset(const Maze& maze, float tile) {
-	float offsetX = (screenW - tile * (maze.width * 2 + 1)) / 2;
-	float offsetY = Scaled(HUD_HEIGHT) + (screenH - Scaled(HUD_HEIGHT) - tile * (maze.height * 2 + 1)) / 2;
+float GetTileSize(const Maze& maze) {
+	return GetTileSizeIn(maze, GetFullScreenArea());
+}
+
+// Top left corner of the maze, centered in the area
+static Vector2 GetMazeOffset(const Maze& maze, Rectangle area, float tile) {
+	float offsetX = area.x + (area.width - tile * (maze.width * 2 + 1)) / 2;
+	float offsetY = area.y + (area.height - tile * (maze.height * 2 + 1)) / 2;
 	return { offsetX, offsetY };
 }
 
-Rectangle GetCellRect(const Maze& maze, int x, int y) {
-	float tile = GetTileSize(maze);
-	Vector2 offset = GetMazeOffset(maze, tile);
+Rectangle GetCellRectIn(const Maze& maze, Rectangle area, int x, int y) {
+	float tile = GetTileSizeIn(maze, area);
+	Vector2 offset = GetMazeOffset(maze, area, tile);
 
 	return { offset.x + (x * 2 + 1) * tile, offset.y + (y * 2 + 1) * tile, tile, tile };
 }
 
+Rectangle GetCellRect(const Maze& maze, int x, int y) {
+	return GetCellRectIn(maze, GetFullScreenArea(), x, y);
+}
+
 void DrawMazeWalls(const Maze& maze) {
+	DrawMazeWallsIn(maze, GetFullScreenArea());
+}
+
+void DrawMazeWallsIn(const Maze& maze, Rectangle area) {
 	const GameAssets& assets = GetAssets();
 
 	int tilesX = maze.width * 2 + 1;
 	int tilesY = maze.height * 2 + 1;
-	float tile = GetTileSize(maze);
-	Vector2 offset = GetMazeOffset(maze, tile);
+	float tile = GetTileSizeIn(maze, area);
+	Vector2 offset = GetMazeOffset(maze, area, tile);
 
 	for (int tileY = 0; tileY < tilesY; tileY++) {
 		for (int tileX = 0; tileX < tilesX; tileX++) {
@@ -98,7 +115,11 @@ void DrawMazeWalls(const Maze& maze) {
 }
 
 void DrawExit(const Maze& maze, bool isOpen) {
-	Rectangle exitTile = GetCellRect(maze, GetExitX(maze), GetExitY(maze));
+	DrawExitIn(maze, GetFullScreenArea(), isOpen);
+}
+
+void DrawExitIn(const Maze& maze, Rectangle area, bool isOpen) {
+	Rectangle exitTile = GetCellRectIn(maze, area, GetExitX(maze), GetExitY(maze));
 
 	if (isOpen) {
 		unsigned char glow = static_cast<unsigned char>(90 + 60 * sinf(static_cast<float>(GetTime()) * 4));

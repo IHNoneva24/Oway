@@ -3,7 +3,6 @@
 
 extern int screenW;
 extern int screenH;
-extern GameMode gameMode;
 
 void DrawMainMenu(Screen& currentScreen) {
 	DrawDungeonBackground();
@@ -23,25 +22,19 @@ void DrawMainMenu(Screen& currentScreen) {
 	float y = screenH * 0.45f;
 	float step = Scaled(95);
 
-	if (DrawCenteredButton(y, "Single player")) {
-		gameMode = SINGLE_PLAYER;
-		currentScreen = SIZESELECT;
+	if (DrawCenteredButton(y, "Play")) {
+		currentScreen = MODESELECT;
 	}
 
-	if (DrawCenteredButton(y + step, "Team play")) {
-		gameMode = TEAM_PLAY;
-		currentScreen = SIZESELECT;
-	}
-
-	if (DrawCenteredButton(y + step * 2, "Leaderboard")) {
+	if (DrawCenteredButton(y + step, "Leaderboard")) {
 		currentScreen = LEADERBOARD;
 	}
 
-	if (DrawCenteredButton(y + step * 3, "How to play")) {
+	if (DrawCenteredButton(y + step * 2, "How to play")) {
 		currentScreen = HELP;
 	}
 
-	if (DrawCenteredButton(y + step * 4, "Exit")) {
+	if (DrawCenteredButton(y + step * 3, "Exit")) {
 		currentScreen = EXITGAME;
 	}
 

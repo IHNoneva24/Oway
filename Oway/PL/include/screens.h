@@ -10,3 +10,6 @@ void DrawTeamGame(Screen& currentScreen);
 void DrawTeamWin(Screen& currentScreen);
 void DrawHelp(Screen& currentScreen);
 void DrawLeaderboard(Screen& currentScreen);
+void DrawModeSelect(Screen& currentScreen);
+void DrawRaceGame(Screen& currentScreen);
+void DrawRaceWin(Screen& currentScreen);

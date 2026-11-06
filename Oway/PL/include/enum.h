@@ -8,6 +8,9 @@ enum Screen {
 	WIN,
 	TEAMGAME,
 	TEAMWIN,
+	MODESELECT,
+	RACEGAME,
+	RACEWIN,
 	HELP,
 	LEADERBOARD,
 	EXITGAME
@@ -16,5 +19,6 @@ enum Screen {
 // Game modes, chosen in the main menu
 enum GameMode {
 	SINGLE_PLAYER,
+	RACE,
 	TEAM_PLAY
 };

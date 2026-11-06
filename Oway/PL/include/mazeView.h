@@ -17,3 +17,9 @@ void DrawMazeWalls(const Maze& maze);
 
 // Draws the ladder in the bottom right corner. A closed exit is dark and doesn't glow
 void DrawExit(const Maze& maze, bool isOpen);
+
+// The same functions for a maze drawn inside a part of the screen (split screen)
+float GetTileSizeIn(const Maze& maze, Rectangle area);
+Rectangle GetCellRectIn(const Maze& maze, Rectangle area, int x, int y);
+void DrawMazeWallsIn(const Maze& maze, Rectangle area);
+void DrawExitIn(const Maze& maze, Rectangle area, bool isOpen);

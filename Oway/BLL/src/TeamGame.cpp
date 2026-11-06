@@ -68,14 +68,18 @@ static void PlaceGates(TeamSession& session, const int* path, int pathLength) {
 	}
 }
 
-// Spikes are put on free cells of the way to the exit (never on the start or the exit)
+// Spikes are put on free cells of the way to the exit (never on the start or the exit).
+// Two spikes are never next to each other: neighbouring spikes go up and down at opposite times,
+// so a hero standing on one of them could never step onto the other one
 static void PlaceSpikes(TeamSession& session, const int* path, int pathLength, std::mt19937& random) {
 	int spikeCount = pathLength / 8;
 
 	for (int attempt = 0; attempt < spikeCount * 10 && spikeCount > 0; attempt++) {
 		int position = 2 + random() % (pathLength - 4);
+		bool hasSpikeNext = session.cells[path[position - 1]] == CELL_SPIKES
+			|| session.cells[path[position + 1]] == CELL_SPIKES;
 
-		if (session.cells[path[position]] == CELL_EMPTY) {
+		if (session.cells[path[position]] == CELL_EMPTY && !hasSpikeNext) {
 			session.cells[path[position]] = CELL_SPIKES;
 			spikeCount--;
 		}

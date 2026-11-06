@@ -243,6 +243,7 @@ bool StartTeamSession(TeamSession& session, int mazeSize, unsigned int seed) {
 	session.isFinished = false;
 	session.isPaused = false;
 	session.hurtTimer = 0.0f;
+	session.remoteHero = -1;
 
 	return true;
 }
@@ -331,9 +332,32 @@ void UpdateTeamGame(TeamSession& session, float deltaSeconds) {
 		session.hurtTimer -= deltaSeconds;
 	}
 
-	// The spikes can go up while a hero is standing on them
-	CheckHazards(session, HERO_FIRE);
-	CheckHazards(session, HERO_WATER);
+	// The spikes can go up while a hero is standing on them.
+	// In LAN the other computer checks its own hero, so a small time difference can't hurt it here
+	for (int hero = 0; hero < HERO_COUNT; hero++) {
+		if (hero != session.remoteHero) {
+			CheckHazards(session, static_cast<Hero>(hero));
+		}
+	}
+}
+
+void SetRemoteHero(TeamSession& session, int hero) {
+	session.remoteHero = (hero >= 0 && hero < HERO_COUNT) ? hero : -1;
+}
+
+void ApplyRemoteHero(TeamSession& session, Hero hero, int x, int y, int moves, Direction facing) {
+	if (session.isFinished || !IsInsideMaze(session.maze, x, y)) {
+		return;
+	}
+
+	Player& player = session.heroes[hero];
+	player.x = x;
+	player.y = y;
+	player.moves = moves;
+	player.facing = facing;
+
+	CollectGem(session, hero);
+	session.isFinished = HaveBothEscaped(session);
 }
 
 int GetTeamMoves(const TeamSession& session) {

@@ -78,6 +78,27 @@ bool TryMoveRacer(RaceSession& session, int racer, Direction direction) {
 	return true;
 }
 
+void ApplyRemoteRacer(RaceSession& session, int racer, int x, int y, int moves, Direction facing,
+	bool hasEscaped, float escapeSeconds) {
+	if (!IsValidRacer(racer) || !IsInsideMaze(session.mazes[racer], x, y)) {
+		return;
+	}
+
+	Player& player = session.racers[racer];
+	player.x = x;
+	player.y = y;
+	player.moves = moves;
+	player.facing = facing;
+
+	// The escape time comes from the other computer, so both see the same result
+	if (hasEscaped && !session.hasEscaped[racer]) {
+		session.hasEscaped[racer] = true;
+		session.escapeSeconds[racer] = escapeSeconds;
+	}
+
+	session.isFinished = session.hasEscaped[0] && session.hasEscaped[1];
+}
+
 void UpdateRace(RaceSession& session, float deltaSeconds) {
 	if (!session.isFinished && !session.isPaused) {
 		session.elapsedSeconds += deltaSeconds;

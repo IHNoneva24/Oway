@@ -32,6 +32,7 @@ struct TeamSession {
 	float elapsedSeconds = 0.0f;
 	bool isFinished = false;
 	bool isPaused = false;
+	int remoteHero = -1;    // LAN: the hero moved by the other computer (-1 = both are on this computer)
 	Hero lastHurtHero = HERO_FIRE;
 	float hurtTimer = 0.0f; // > 0 while the "sent back" message is shown
 };
@@ -59,6 +60,12 @@ bool AreSpikesUp(const TeamSession& session, int x, int y);
 
 // The exit opens when all gems are collected
 bool IsExitOpen(const TeamSession& session);
+
+// LAN: the given hero is moved by the other computer, so its traps are checked there
+void SetRemoteHero(TeamSession& session, int hero);
+
+// LAN: puts the other computer's hero where it says and collects its gem. Positions outside the maze are ignored
+void ApplyRemoteHero(TeamSession& session, Hero hero, int x, int y, int moves, Direction facing);
 
 // Adds the frame time, checks the spikes and the win condition
 void UpdateTeamGame(TeamSession& session, float deltaSeconds);

@@ -53,5 +53,11 @@
     <ClInclude Include="include\Lobby.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="src\LanGame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="include\LanGame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

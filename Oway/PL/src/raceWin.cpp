@@ -1,10 +1,37 @@
 #include "screens.h"
 #include "ui.h"
 #include "RaceGame.h"
+#include "Lobby.h"
+#include "lanSession.h"
 #include <ctime>
 
 extern int screenW;
 extern int screenH;
+extern bool isLanGame;
+
+// LAN: only the host can start a rematch, the other player waits for it
+static void DrawLanButtons(const RaceSession& session, Screen& currentScreen, float y) {
+	UpdateLanSession(currentScreen);
+
+	if (DrawLanNotice(currentScreen) || currentScreen != RACEWIN) {
+		return;
+	}
+
+	if (IsHost()) {
+		if (DrawCenteredButton(y, "Rematch")) {
+			HostLanRematch(session.mazes[0].width, currentScreen);
+		}
+	}
+	else {
+		DrawCenteredText("Waiting for the host to start a rematch...", y + Scaled(20), Scaled(28), COLOR_TEXT_DIM);
+	}
+
+	if (DrawCenteredButton(y + Scaled(95), "Leave") || IsKeyPressed(KEY_ESCAPE)) {
+		ToggleLanLeaveMenu();
+	}
+
+	DrawLanLeaveMenu(currentScreen);
+}
 
 void DrawRaceWin(Screen& currentScreen) {
 	RaceSession& session = GetCurrentRaceSession();
@@ -35,6 +62,11 @@ void DrawRaceWin(Screen& currentScreen) {
 	DrawCenteredText("Race results are not saved to the leaderboard", y + Scaled(175), Scaled(24), COLOR_TEXT_DIM);
 
 	y += Scaled(260);
+
+	if (isLanGame) {
+		DrawLanButtons(session, currentScreen, y);
+		return;
+	}
 
 	if (DrawCenteredButton(y, "Rematch")) {
 		RestartRaceSession(session, static_cast<unsigned int>(time(nullptr)));

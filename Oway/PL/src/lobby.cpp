@@ -1,8 +1,8 @@
 #include "screens.h"
 #include "ui.h"
 #include "Lobby.h"
-#include "RaceGame.h"
-#include "TeamGame.h"
+#include "lanSession.h"
+#include "Maze.h"
 #include <ctime>
 
 extern int screenW;
@@ -36,22 +36,6 @@ static void ResetLobbyScreen() {
 
 static const char* GetModeName() {
 	return gameMode == TEAM_PLAY ? "TEAM PLAY" : "RACE";
-}
-
-// Starts the race or team game with the settings both computers share
-static bool StartSharedGame(const LobbySettings& settings, Screen& currentScreen) {
-	bool isStarted = false;
-
-	if (settings.mode == TEAM_PLAY) {
-		isStarted = StartTeamSession(GetCurrentTeamSession(), settings.mazeSize, settings.seed);
-		currentScreen = TEAMGAME;
-	}
-	else {
-		isStarted = StartRaceSession(GetCurrentRaceSession(), settings.mazeSize, settings.seed);
-		currentScreen = RACEGAME;
-	}
-
-	return isStarted;
 }
 
 // One row of the player list
@@ -127,7 +111,7 @@ static void DrawHostView(Screen& currentScreen, float y) {
 		settings.mazeSize = mazeSize;
 		settings.seed = static_cast<unsigned int>(time(nullptr));
 
-		if (StartLobbyGame(settings) && StartSharedGame(settings, currentScreen)) {
+		if (StartLobbyGame(settings) && StartLanSession(settings, currentScreen)) {
 			ResetLobbyScreen();
 		}
 		else {
@@ -214,7 +198,7 @@ static void HandleLobbyEvents(Screen& currentScreen) {
 		// The game mode comes from the host, so both play the same mode
 		gameMode = static_cast<GameMode>(settings.mode);
 
-		if (StartSharedGame(settings, currentScreen)) {
+		if (StartLanSession(settings, currentScreen)) {
 			ResetLobbyScreen();
 		}
 		else {

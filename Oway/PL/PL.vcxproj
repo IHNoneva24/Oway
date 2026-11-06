@@ -20,6 +20,7 @@
   </ItemGroup>
   <!-- PL source files only — BLL/DL compiled in their own projects -->
   <ItemGroup>
+    <ClCompile Include="src\lanSession.cpp" />
     <ClCompile Include="src\lobby.cpp" />
     <ClCompile Include="src\raceWin.cpp" />
     <ClCompile Include="src\raceGame.cpp" />
@@ -41,6 +42,7 @@
 
   <!-- PL headers only -->
   <ItemGroup>
+    <ClInclude Include="include\lanSession.h" />
     <ClInclude Include="include\assets.h" />
     <ClInclude Include="include\ui.h" />
     <ClInclude Include="include\screen.h" />

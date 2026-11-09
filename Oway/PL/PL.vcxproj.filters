@@ -90,5 +90,7 @@
     <ClInclude Include="include\lanSession.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <None Include="..\..\setup-firewall.bat" />
+    <None Include="..\..\setup-internet.bat" />
   </ItemGroup>
 </Project>

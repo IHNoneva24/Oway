@@ -40,6 +40,12 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
 
+  <!-- Scripts for players who host LAN / internet games -->
+  <ItemGroup>
+    <None Include="..\..\setup-firewall.bat" />
+    <None Include="..\..\setup-internet.bat" />
+  </ItemGroup>
+
   <!-- PL headers only -->
   <ItemGroup>
     <ClInclude Include="include\lanSession.h" />
@@ -128,8 +134,10 @@
       <AdditionalDependencies>winmm.lib;raylib.lib;gdi32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)assets" "$(OutDir)assets\" /E /I /Y /Q</Command>
-      <Message>Copying assets next to the executable</Message>
+      <Command>xcopy "$(ProjectDir)assets" "$(OutDir)assets\" /E /I /Y /Q
+copy /Y "$(ProjectDir)..\..\setup-firewall.bat" "$(OutDir)" &gt;nul
+copy /Y "$(ProjectDir)..\..\setup-internet.bat" "$(OutDir)" &gt;nul</Command>
+      <Message>Copying assets and the network scripts next to the executable</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
 

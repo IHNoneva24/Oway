@@ -31,7 +31,7 @@ void DrawHelp(Screen& currentScreen) {
 	DrawDungeonBackground();
 
 	float panelWidth = Scaled(1000);
-	float panelHeight = Scaled(980);
+	float panelHeight = Scaled(1020);
 	DrawPanel({ screenW / 2.0f - panelWidth / 2, screenH / 2.0f - panelHeight / 2, panelWidth, panelHeight });
 
 	float y = screenH / 2.0f - panelHeight / 2 + Scaled(40);
@@ -39,9 +39,10 @@ void DrawHelp(Screen& currentScreen) {
 
 	y += Scaled(110);
 
+	// Empty lines only separate the sections, so they take half the height and all lines fit above the button
 	for (int i = 0; i < HELP_LINE_COUNT; i++) {
-		DrawCenteredText(HELP_LINES[i], y, Scaled(30), RAYWHITE);
-		y += Scaled(44);
+		DrawCenteredText(HELP_LINES[i], y, Scaled(28), RAYWHITE);
+		y += HELP_LINES[i][0] == '\0' ? Scaled(19) : Scaled(38);
 	}
 
 	if (DrawCenteredButton(screenH / 2.0f + panelHeight / 2 - Scaled(100), "Back") || IsKeyPressed(KEY_ESCAPE)) {

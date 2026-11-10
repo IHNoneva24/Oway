@@ -5,5 +5,6 @@
   </Configurations>
   <Project Path="BLL/BLL.vcxproj" Id="58004e0a-bdd7-4211-b37d-7abb097327fc" />
   <Project Path="DL/DL.vcxproj" Id="dfe3a8f4-71c4-44ba-ac36-cf2b403130a6" />
+  <Project Path="Tests/Tests.vcxproj" Id="ff0dd116-da11-4d84-8d7d-c6d6fbe5b887" />
   <Project Path="PL/PL.vcxproj" Id="73a7f9c3-e7f1-43a2-9850-a8444f657d3a" />
 </Solution>

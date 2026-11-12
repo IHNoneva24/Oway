@@ -1,6 +1,6 @@
  
 <div align="center">
-  <img width="400" height="400" src="Oway/PL/assets/tileset/demonstration.png" alt="Oway's dungeon">
+  <img width="400" height="400" src="Oway/PL/assets/logo/logo.png" alt="Oway's dungeon">
 
   <p align="center">
     <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/IHNoneva24/Oway">

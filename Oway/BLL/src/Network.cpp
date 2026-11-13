@@ -1,28 +1,31 @@
+// smaller windows.h
 #define WIN32_LEAN_AND_MEAN
+// no min/max macros
 #define NOMINMAX
 #include "Network.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <cstring>
 
+// link Winsock
 #pragma comment(lib, "ws2_32.lib")
 
-static const int MESSAGE_SIZE = 14;              // bytes of one message on the wire
+static const int MESSAGE_SIZE = 14;
 static const int RECEIVE_BUFFER_SIZE = 4096;
 static const unsigned long long CONNECT_TIMEOUT_MS = 5000;
 
 static bool isWinsockStarted = false;
-static SOCKET listenSocket = INVALID_SOCKET;     // only used by the host
-static SOCKET peerSocket = INVALID_SOCKET;       // the connection to the other player
+static SOCKET listenSocket = INVALID_SOCKET;
+static SOCKET peerSocket = INVALID_SOCKET;
 static NetworkState state = NETWORK_OFF;
 static bool isHost = false;
 static unsigned long long connectStartTime = 0;
 static const char* lastError = "";
 
-// Bytes received from TCP that are not a complete message yet
 static char receiveBuffer[RECEIVE_BUFFER_SIZE];
 static int receivedBytes = 0;
 
+// Close socket
 static void CloseSocket(SOCKET& socketToClose) {
 	if (socketToClose != INVALID_SOCKET) {
 		closesocket(socketToClose);
@@ -30,6 +33,7 @@ static void CloseSocket(SOCKET& socketToClose) {
 	}
 }
 
+// Set error
 static void SetError(const char* message) {
 	lastError = message;
 	CloseSocket(peerSocket);
@@ -37,68 +41,85 @@ static void SetError(const char* message) {
 	state = NETWORK_ERROR;
 }
 
+// Non-blocking socket
 static bool MakeNonBlocking(SOCKET socketToChange) {
 	u_long mode = 1;
+	// non-blocking mode
 	return ioctlsocket(socketToChange, FIONBIO, &mode) == 0;
 }
 
-// Messages are sent at once, without waiting to fill a bigger packet (lower delay for the moves)
+// Disable delay
 static void DisableDelay(SOCKET socketToChange) {
 	BOOL noDelay = TRUE;
+	// send at once
 	setsockopt(socketToChange, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&noDelay), sizeof(noDelay));
 }
 
-// Message <-> bytes. Numbers are sent in network byte order (big endian)
+// Pack message
 static void WriteMessage(const NetworkMessage& message, char* bytes) {
+	// network byte order
 	u_short x = htons(static_cast<u_short>(message.x));
 	u_short y = htons(static_cast<u_short>(message.y));
+	// network byte order
 	u_long value = htonl(static_cast<u_long>(message.value));
 	u_long seed = htonl(message.seed);
 
 	bytes[0] = static_cast<char>(message.type);
 	bytes[1] = static_cast<char>(message.player);
+	// copy bytes
 	memcpy(bytes + 2, &x, 2);
 	memcpy(bytes + 4, &y, 2);
+	// copy bytes
 	memcpy(bytes + 6, &value, 4);
 	memcpy(bytes + 10, &seed, 4);
 }
 
+// Unpack message
 static void ReadMessage(const char* bytes, NetworkMessage& message) {
 	u_short x, y;
 	u_long value, seed;
 
+	// copy bytes
 	memcpy(&x, bytes + 2, 2);
 	memcpy(&y, bytes + 4, 2);
+	// copy bytes
 	memcpy(&value, bytes + 6, 4);
 	memcpy(&seed, bytes + 10, 4);
 
 	message.type = static_cast<MessageType>(static_cast<unsigned char>(bytes[0]));
 	message.player = static_cast<unsigned char>(bytes[1]);
+	// host byte order
 	message.x = static_cast<short>(ntohs(x));
 	message.y = static_cast<short>(ntohs(y));
+	// host byte order
 	message.value = static_cast<int>(ntohl(value));
 	message.seed = ntohl(seed);
 }
 
+// Start network
 bool InitNetwork() {
 	if (isWinsockStarted) {
 		return true;
 	}
 
 	WSADATA data;
+	// start Winsock
 	isWinsockStarted = WSAStartup(MAKEWORD(2, 2), &data) == 0;
 	return isWinsockStarted;
 }
 
+// Stop network
 void ShutdownNetwork() {
 	Disconnect();
 
 	if (isWinsockStarted) {
+		// stop Winsock
 		WSACleanup();
 		isWinsockStarted = false;
 	}
 }
 
+// Host game
 bool StartHosting(unsigned short port) {
 	Disconnect();
 	isHost = true;
@@ -117,14 +138,17 @@ bool StartHosting(unsigned short port) {
 
 	sockaddr_in address = {};
 	address.sin_family = AF_INET;
+	// network byte order
 	address.sin_addr.s_addr = htonl(INADDR_ANY);
 	address.sin_port = htons(port);
 
+	// reserve port
 	if (bind(listenSocket, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == SOCKET_ERROR) {
 		SetError("The port is already in use");
 		return false;
 	}
 
+	// wait for players
 	if (listen(listenSocket, 1) == SOCKET_ERROR) {
 		SetError("Could not start the server");
 		return false;
@@ -134,6 +158,7 @@ bool StartHosting(unsigned short port) {
 	return true;
 }
 
+// Join game
 bool StartJoining(const char* ipAddress, unsigned short port) {
 	Disconnect();
 	isHost = false;
@@ -150,7 +175,9 @@ bool StartJoining(const char* ipAddress, unsigned short port) {
 
 	sockaddr_in address = {};
 	address.sin_family = AF_INET;
+	// network byte order
 	address.sin_port = htons(port);
+	// text to IP
 	inet_pton(AF_INET, ipAddress, &address.sin_addr);
 
 	peerSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -160,8 +187,9 @@ bool StartJoining(const char* ipAddress, unsigned short port) {
 		return false;
 	}
 
-	// A non-blocking connect returns at once, UpdateNetwork() checks later if it worked
+	// start connecting
 	if (connect(peerSocket, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == SOCKET_ERROR
+		// real error
 		&& WSAGetLastError() != WSAEWOULDBLOCK) {
 		SetError("Could not reach the host");
 		return false;
@@ -173,11 +201,13 @@ bool StartJoining(const char* ipAddress, unsigned short port) {
 	return true;
 }
 
-// Host: takes the player who joins
+// Accept player
 static void AcceptPlayer() {
+	// take player
 	SOCKET client = accept(listenSocket, nullptr, nullptr);
 
 	if (client == INVALID_SOCKET) {
+		// real error
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
 			SetError("Error while waiting for a player");
 		}
@@ -189,15 +219,15 @@ static void AcceptPlayer() {
 	DisableDelay(client);
 	peerSocket = client;
 
-	// Only one player can join, so the server stops listening
 	CloseSocket(listenSocket);
 	state = NETWORK_CONNECTED;
 }
 
-// Client: checks if the connection to the host is ready
+// Check connection
 static void CheckConnecting() {
 	fd_set writeSet;
 	fd_set errorSet;
+	// socket sets
 	FD_ZERO(&writeSet);
 	FD_ZERO(&errorSet);
 	FD_SET(peerSocket, &writeSet);
@@ -205,6 +235,7 @@ static void CheckConnecting() {
 
 	timeval noWait = { 0, 0 };
 
+	// check socket
 	if (select(0, nullptr, &writeSet, &errorSet, &noWait) == SOCKET_ERROR || FD_ISSET(peerSocket, &errorSet)) {
 		SetError("Could not reach the host");
 		return;
@@ -215,14 +246,16 @@ static void CheckConnecting() {
 		return;
 	}
 
+	// connect timeout
 	if (GetTickCount64() - connectStartTime > CONNECT_TIMEOUT_MS) {
 		SetError("The host did not answer");
 	}
 }
 
-// Reads all bytes that arrived since the last frame
+// Receive bytes
 static void ReceiveBytes() {
 	while (receivedBytes < RECEIVE_BUFFER_SIZE) {
+		// read bytes
 		int count = recv(peerSocket, receiveBuffer + receivedBytes, RECEIVE_BUFFER_SIZE - receivedBytes, 0);
 
 		if (count > 0) {
@@ -233,6 +266,7 @@ static void ReceiveBytes() {
 		if (count == 0) {
 			SetError("The other player left");
 		}
+		// real error
 		else if (WSAGetLastError() != WSAEWOULDBLOCK) {
 			SetError("The connection was lost");
 		}
@@ -241,6 +275,7 @@ static void ReceiveBytes() {
 	}
 }
 
+// Update network
 void UpdateNetwork() {
 	switch (state) {
 	case NETWORK_HOSTING:    AcceptPlayer();    break;
@@ -250,6 +285,7 @@ void UpdateNetwork() {
 	}
 }
 
+// Disconnect
 void Disconnect() {
 	if (state == NETWORK_CONNECTED) {
 		NetworkMessage bye;
@@ -264,14 +300,17 @@ void Disconnect() {
 	state = NETWORK_OFF;
 }
 
+// Connection state
 NetworkState GetNetworkState() {
 	return state;
 }
 
+// Host check
 bool IsHost() {
 	return isHost;
 }
 
+// Send message
 bool SendNetworkMessage(const NetworkMessage& message) {
 	if (state != NETWORK_CONNECTED) {
 		return false;
@@ -282,8 +321,8 @@ bool SendNetworkMessage(const NetworkMessage& message) {
 
 	int sent = 0;
 
-	// A message is small, but send() can still take only a part of it
 	while (sent < MESSAGE_SIZE) {
+		// send bytes
 		int count = send(peerSocket, bytes + sent, MESSAGE_SIZE - sent, 0);
 
 		if (count == SOCKET_ERROR) {
@@ -301,6 +340,7 @@ bool SendNetworkMessage(const NetworkMessage& message) {
 	return true;
 }
 
+// Receive message
 bool ReceiveNetworkMessage(NetworkMessage& message) {
 	if (receivedBytes < MESSAGE_SIZE) {
 		return false;
@@ -308,17 +348,19 @@ bool ReceiveNetworkMessage(NetworkMessage& message) {
 
 	ReadMessage(receiveBuffer, message);
 
-	// Moves the rest of the bytes to the start of the buffer
 	receivedBytes -= MESSAGE_SIZE;
+	// shift buffer
 	memmove(receiveBuffer, receiveBuffer + MESSAGE_SIZE, receivedBytes);
 
 	return true;
 }
 
+// Last error
 const char* GetNetworkError() {
 	return lastError;
 }
 
+// IP check
 bool IsValidIpAddress(const char* text) {
 	if (text == nullptr) {
 		return false;
@@ -332,7 +374,6 @@ bool IsValidIpAddress(const char* text) {
 		char character = text[i];
 
 		if (character >= '0' && character <= '9') {
-			// No leading zeros like "01" and every part is 0 - 255
 			if (digits > 0 && value == 0) {
 				return false;
 			}
@@ -363,25 +404,30 @@ bool IsValidIpAddress(const char* text) {
 	}
 }
 
+// Local IP
 bool GetLocalIpAddress(char* buffer, int bufferSize) {
 	if (!isWinsockStarted || buffer == nullptr || bufferSize < IP_TEXT_LENGTH) {
 		return false;
 	}
 
-	// Asks Windows which network card it would use to reach the internet. A UDP "connect" sends no data,
-	// it only picks the route, so this finds the real LAN address and not a virtual adapter (VirtualBox, VPN)
+	// UDP probe
 	SOCKET probe = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if (probe != INVALID_SOCKET) {
 		sockaddr_in remote = {};
 		remote.sin_family = AF_INET;
+		// network byte order
 		remote.sin_port = htons(53);
+		// text to IP
 		inet_pton(AF_INET, "8.8.8.8", &remote.sin_addr);
 
 		sockaddr_in local = {};
 		int localSize = sizeof(local);
+		// start connecting
 		bool isRouteFound = connect(probe, reinterpret_cast<sockaddr*>(&remote), sizeof(remote)) == 0
+			// local address
 			&& getsockname(probe, reinterpret_cast<sockaddr*>(&local), &localSize) == 0
+			// IP to text
 			&& inet_ntop(AF_INET, &local.sin_addr, buffer, bufferSize) != nullptr;
 
 		closesocket(probe);
@@ -391,9 +437,9 @@ bool GetLocalIpAddress(char* buffer, int bufferSize) {
 		}
 	}
 
-	// Without a route (no internet): the first address of this computer that is not 127.x.x.x
 	char hostName[256];
 
+	// computer name
 	if (gethostname(hostName, sizeof(hostName)) == SOCKET_ERROR) {
 		return false;
 	}
@@ -402,16 +448,18 @@ bool GetLocalIpAddress(char* buffer, int bufferSize) {
 	hints.ai_family = AF_INET;
 	addrinfo* results = nullptr;
 
+	// host addresses
 	if (getaddrinfo(hostName, nullptr, &hints, &results) != 0) {
 		return false;
 	}
 
 	bool isFound = false;
 
-	// The first address that is not 127.x.x.x (this computer only) is the LAN address
 	for (addrinfo* result = results; result != nullptr && !isFound; result = result->ai_next) {
+		// raw cast
 		sockaddr_in* address = reinterpret_cast<sockaddr_in*>(result->ai_addr);
 
+		// IP to text
 		if (inet_ntop(AF_INET, &address->sin_addr, buffer, bufferSize) != nullptr && strncmp(buffer, "127.", 4) != 0) {
 			isFound = true;
 		}

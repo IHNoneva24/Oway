@@ -2,17 +2,15 @@
 #include "Game.h"
 #include "Lobby.h"
 
-// Syncing a running race or team game over LAN.
-// Every computer moves only its own player and sends where it is; the other player's moves come from the network
-
+// LAN events
 enum LanGameEvent {
 	LAN_NOTHING,
-	LAN_REMATCH,        // the host started a new game (the settings are filled)
-	LAN_OTHER_LEFT,     // the other player left the game
-	LAN_CONNECTION_LOST // the network stopped working
+	LAN_REMATCH,
+	LAN_OTHER_LEFT,
+	LAN_CONNECTION_LOST
 };
 
-// The other player's state, as it came over the network
+// Other player
 struct RemotePlayer {
 	bool hasUpdate = false;
 	int x = 0;
@@ -23,23 +21,23 @@ struct RemotePlayer {
 	float escapeSeconds = 0.0f;
 };
 
-// Forgets what was sent and received before. Call when a LAN game starts
+// Reset sync
 void ResetLanGame();
 
-// Sends the local player's state, but only if it changed since the last time
+// Send position
 void SendLocalPlayer(const Player& player);
 
-// Tells the other computer (once per game) that the local player reached the exit
+// Send escape
 void SendLocalEscape(float escapeSeconds);
 
-// Reads the network and updates the other player's state. "settings" is filled on a rematch
+// Update sync
 LanGameEvent UpdateLanGame(LobbySettings& settings);
 
-// The newest state of the other player
+// Other player
 const RemotePlayer& GetRemotePlayer();
 
-// Host: starts a new game for both computers
+// Start rematch
 bool StartLanRematch(const LobbySettings& settings);
 
-// Leaves the game and closes the connection (the other player gets LAN_OTHER_LEFT)
+// Leave game
 void LeaveLanGame();

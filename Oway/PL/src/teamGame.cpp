@@ -8,30 +8,28 @@
 #include <ctime>
 #include <cmath>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
+// from screen.cpp
 extern bool isLanGame;
 
-// A held key moves the hero again after these delays (in seconds).
-// Every hero has its own timer, so both players can hold their keys at the same time
 static const float FIRST_REPEAT_DELAY = 0.25f;
 static const float REPEAT_DELAY = 0.1f;
 
 static float moveTimers[HERO_COUNT] = { 0.0f, 0.0f };
 
-// Tiles from Dungeon_Tileset.png (column, row)
 static const int GATE_TILE[2] = { 8, 3 };
 static const int FIRE_GEM_TILE[2] = { 9, 8 };
 static const int WATER_GEM_TILE[2] = { 7, 8 };
 
-// Columns of the heroes in Dungeon_Character.png
 static const int FIRE_HERO_COLUMN = 1;
 static const int WATER_HERO_COLUMN = 3;
 
 static const Color COLOR_FIRE = { 240, 110, 50, 255 };
 static const Color COLOR_WATER = { 70, 160, 240, 255 };
 
-// Moves the hero when the key is pressed, or again while it is held down
+// Hero key
 static void HandleHeroKey(TeamSession& session, Hero hero, int key, Direction direction) {
 	if (IsKeyPressed(key)) {
 		TryMoveHero(session, hero, direction);
@@ -43,8 +41,7 @@ static void HandleHeroKey(TeamSession& session, Hero hero, int key, Direction di
 	}
 }
 
-// Fire hero - WASD, water hero - arrow keys.
-// In LAN this computer moves only its own hero (host - fire, other player - water), with any of the two key sets
+// Movement keys
 static void HandleMovement(TeamSession& session) {
 	moveTimers[HERO_FIRE] -= GetFrameTime();
 	moveTimers[HERO_WATER] -= GetFrameTime();
@@ -74,21 +71,21 @@ static void HandleMovement(TeamSession& session) {
 	HandleHeroKey(session, HERO_WATER, KEY_LEFT, DIRECTION_LEFT);
 }
 
-// Draws a whole texture stretched into the destination
+// Stretched texture
 static void DrawTextureInRect(Texture2D texture, Rectangle destination) {
 	DrawTexturePro(texture, { 0, 0, static_cast<float>(texture.width), static_cast<float>(texture.height) },
 		destination, { 0, 0 }, 0.0f, WHITE);
 }
 
-// Draws the lava, water, spikes, plates, gates and gems of one cell
+// Draw object
 static void DrawCellObject(const TeamSession& session, int x, int y) {
 	const GameAssets& assets = GetAssets();
 	Rectangle cell = GetCellRect(session.maze, x, y);
+	// pulsing glow
 	float wave = sinf(static_cast<float>(GetTime()) * 3 + x + y);
 
 	switch (GetCellType(session, x, y)) {
 	case CELL_LAVA:
-		// The flame sprite is 16x32, so it is drawn half as wide as the cell. Its last frame has no flame
 		DrawRectangleRec(cell, { 230, 80, 30, static_cast<unsigned char>(180 + 40 * wave) });
 		DrawTextureInRect(assets.flame[GetAnimationFrame() % 3], { cell.x + cell.width / 4, cell.y, cell.width / 2, cell.height });
 		break;
@@ -132,7 +129,7 @@ static void DrawCellObject(const TeamSession& session, int x, int y) {
 	}
 }
 
-// Draws a hero with a colored glow under it. "shift" moves it sideways when both heroes share a cell
+// Draw hero
 static void DrawHero(const TeamSession& session, Hero hero, int column, Color color, float shift) {
 	const Player& player = session.heroes[hero];
 	Rectangle tile = GetCellRect(session.maze, player.x, player.y);
@@ -141,16 +138,17 @@ static void DrawHero(const TeamSession& session, Hero hero, int column, Color co
 	DrawCircle(static_cast<int>(tile.x + tile.width / 2), static_cast<int>(tile.y + tile.height / 2),
 		tile.width * 0.5f, Fade(color, 0.75f));
 
-	// The hero blinks after it was sent back to the start
 	bool isHurt = session.hurtTimer > 0.0f && session.lastHurtHero == hero;
 	bool isVisible = !isHurt || static_cast<int>(GetTime() * 8) % 2 == 0;
 
 	if (isVisible) {
+		// idle animation
 		int frameRow = static_cast<int>(GetTime() * 2) % 2 == 0 ? 0 : 2;
 		DrawTile(GetAssets().characters, column, frameRow, tile, player.facing == DIRECTION_LEFT);
 	}
 }
 
+// Draw maze
 static void DrawTeamMaze(const TeamSession& session) {
 	DrawMazeWalls(session.maze);
 	DrawExit(session.maze, IsExitOpen(session));
@@ -169,6 +167,7 @@ static void DrawTeamMaze(const TeamSession& session) {
 	DrawHero(session, HERO_WATER, WATER_HERO_COLUMN, COLOR_WATER, shift);
 }
 
+// Draw HUD
 static void DrawTeamHud(const TeamSession& session) {
 	float height = Scaled(HUD_HEIGHT);
 	int fontSize = static_cast<int>(Scaled(30));
@@ -191,7 +190,6 @@ static void DrawTeamHud(const TeamSession& session) {
 		: (GetLocalPlayer() == HERO_FIRE ? "You are FIRE  |  ESC - menu" : "You are WATER  |  ESC - menu");
 	DrawText(hint, screenW - MeasureText(hint, fontSize) - static_cast<int>(Scaled(30)), textY, fontSize, COLOR_TEXT_DIM);
 
-	// Message under the HUD after a hero stepped on the wrong thing
 	if (session.hurtTimer > 0.0f) {
 		bool isFire = session.lastHurtHero == HERO_FIRE;
 		const char* message = isFire ? "Fire hero was sent back to the start!" : "Water hero was sent back to the start!";
@@ -201,6 +199,7 @@ static void DrawTeamHud(const TeamSession& session) {
 	}
 }
 
+// Pause menu
 static void DrawTeamPauseMenu(TeamSession& session, Screen& currentScreen) {
 	DrawRectangle(0, 0, screenW, screenH, { 0, 0, 0, 170 });
 
@@ -223,7 +222,7 @@ static void DrawTeamPauseMenu(TeamSession& session, Screen& currentScreen) {
 	}
 }
 
-// LAN: sends this computer's hero and puts the other hero where the network says
+// LAN sync
 static void SyncLanTeam(TeamSession& session, Screen& currentScreen) {
 	int local = GetLocalPlayer();
 	SendLocalPlayer(session.heroes[local]);
@@ -236,10 +235,10 @@ static void SyncLanTeam(TeamSession& session, Screen& currentScreen) {
 	}
 }
 
+// Team screen
 void DrawTeamGame(Screen& currentScreen) {
 	TeamSession& session = GetCurrentTeamSession();
 
-	// In LAN ESC doesn't pause, because the other player keeps playing
 	if (IsKeyPressed(KEY_ESCAPE)) {
 		if (isLanGame) {
 			ToggleLanLeaveMenu();

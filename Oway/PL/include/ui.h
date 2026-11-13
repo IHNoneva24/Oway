@@ -1,7 +1,6 @@
 #pragma once
 #include "raylib.h"
 
-// Shared colors of the interface
 const Color COLOR_BACKGROUND = { 26, 18, 30, 255 };
 const Color COLOR_PANEL = { 20, 14, 24, 220 };
 const Color COLOR_BUTTON = { 92, 60, 52, 235 };
@@ -10,36 +9,35 @@ const Color COLOR_ACCENT = { 240, 180, 60, 255 };
 const Color COLOR_ERROR = { 230, 80, 70, 255 };
 const Color COLOR_TEXT_DIM = { 170, 160, 170, 255 };
 
-// Scale of the interface compared to a 1920x1080 screen, so it fits any window size
+// UI scale
 float GetUiScale();
 
-// Value multiplied by the UI scale
+// Scaled value
 float Scaled(float value);
 
-// Draws a button and returns true when it is clicked
+// Draw button
 bool DrawButton(Rectangle rect, const char* text);
 
-// Draws a button centered horizontally and returns true when it is clicked
+// Centered button
 bool DrawCenteredButton(float y, const char* text);
 
-// Draws text centered horizontally on the screen
+// Centered text
 void DrawCenteredText(const char* text, float y, float fontSize, Color color);
 
-// Fills the screen with dungeon floor tiles and darkens it
+// Draw background
 void DrawDungeonBackground();
 
-// Draws a dark rectangle behind menus and dialogs
+// Draw panel
 void DrawPanel(Rectangle rect);
 
-// Adds the typed characters to "text" (up to maxLength) and handles backspace.
-// With digitsOnly only 0-9 are accepted. Returns true if the text changed
+// Text input
 bool UpdateTextInput(char* text, int maxLength, bool digitsOnly);
 
-// Like UpdateTextInput, but only the characters in "allowedCharacters" can be typed
+// Filtered input
 bool UpdateFilteredTextInput(char* text, int maxLength, const char* allowedCharacters);
 
-// Draws an input box with the text and a blinking cursor, red border on error
+// Draw input box
 void DrawTextBox(Rectangle box, const char* text, float fontSize, bool hasError);
 
-// Draws an animated torch with its top left corner at x, y
+// Draw torch
 void DrawTorch(float x, float y, float size);

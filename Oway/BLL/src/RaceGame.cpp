@@ -2,12 +2,13 @@
 
 static RaceSession currentRaceSession;
 
+// Racer check
 static bool IsValidRacer(int racer) {
 	return racer >= 0 && racer < RACER_COUNT;
 }
 
+// Start race
 bool StartRaceSession(RaceSession& session, int mazeSize, unsigned int seed) {
-	// The same seed gives both racers the same layout, so the race is fair
 	for (int i = 0; i < RACER_COUNT; i++) {
 		if (!CreateMaze(session.mazes[i], mazeSize, mazeSize)) {
 			EndRaceSession(session);
@@ -28,10 +29,12 @@ bool StartRaceSession(RaceSession& session, int mazeSize, unsigned int seed) {
 	return true;
 }
 
+// Restart race
 bool RestartRaceSession(RaceSession& session, unsigned int seed) {
 	return StartRaceSession(session, session.mazes[0].width, seed);
 }
 
+// End race
 void EndRaceSession(RaceSession& session) {
 	for (int i = 0; i < RACER_COUNT; i++) {
 		DestroyMaze(session.mazes[i]);
@@ -41,12 +44,13 @@ void EndRaceSession(RaceSession& session) {
 	session.isPaused = false;
 }
 
+// Pause race
 void SetRacePaused(RaceSession& session, bool isPaused) {
 	session.isPaused = isPaused && !session.isFinished;
 }
 
+// Move racer
 bool TryMoveRacer(RaceSession& session, int racer, Direction direction) {
-	// A racer who is out waits on the exit for the other one
 	if (session.isFinished || session.isPaused || !IsValidRacer(racer) || session.hasEscaped[racer]) {
 		return false;
 	}
@@ -78,6 +82,7 @@ bool TryMoveRacer(RaceSession& session, int racer, Direction direction) {
 	return true;
 }
 
+// Remote racer
 void ApplyRemoteRacer(RaceSession& session, int racer, int x, int y, int moves, Direction facing,
 	bool hasEscaped, float escapeSeconds) {
 	if (!IsValidRacer(racer) || !IsInsideMaze(session.mazes[racer], x, y)) {
@@ -90,7 +95,6 @@ void ApplyRemoteRacer(RaceSession& session, int racer, int x, int y, int moves, 
 	player.moves = moves;
 	player.facing = facing;
 
-	// The escape time comes from the other computer, so both see the same result
 	if (hasEscaped && !session.hasEscaped[racer]) {
 		session.hasEscaped[racer] = true;
 		session.escapeSeconds[racer] = escapeSeconds;
@@ -99,12 +103,14 @@ void ApplyRemoteRacer(RaceSession& session, int racer, int x, int y, int moves, 
 	session.isFinished = session.hasEscaped[0] && session.hasEscaped[1];
 }
 
+// Update timer
 void UpdateRace(RaceSession& session, float deltaSeconds) {
 	if (!session.isFinished && !session.isPaused) {
 		session.elapsedSeconds += deltaSeconds;
 	}
 }
 
+// Race winner
 int GetRaceWinner(const RaceSession& session) {
 	int winner = -1;
 
@@ -117,6 +123,7 @@ int GetRaceWinner(const RaceSession& session) {
 	return winner;
 }
 
+// Current race
 RaceSession& GetCurrentRaceSession() {
 	return currentRaceSession;
 }

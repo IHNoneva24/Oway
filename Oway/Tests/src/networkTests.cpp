@@ -4,6 +4,7 @@
 #include "Lobby.h"
 #include <cstring>
 
+// IP rules
 static void TestIpValidation() {
 	Check(IsValidIpAddress("192.168.1.15"), "192.168.1.15 is a valid IP");
 	Check(IsValidIpAddress("10.0.0.1"), "10.0.0.1 is a valid IP");
@@ -18,6 +19,7 @@ static void TestIpValidation() {
 	Check(!IsValidIpAddress(nullptr), "a missing address (nullptr) is rejected");
 }
 
+// Connection errors
 static void TestConnectionErrors() {
 	Check(InitNetwork(), "Winsock starts");
 	Check(GetNetworkState() == NETWORK_OFF, "there is no connection at the start");
@@ -44,6 +46,7 @@ static void TestConnectionErrors() {
 	ShutdownNetwork();
 }
 
+// Network tests
 void RunNetworkTests() {
 	BeginTestGroup("Network (BLL/Network, BLL/Lobby)");
 

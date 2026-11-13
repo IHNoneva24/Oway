@@ -3,24 +3,24 @@
 
 static TeamSession currentTeamSession;
 
-// Offsets for each direction (same order as the Direction enum)
 static const int DIRECTION_DX[4] = { 0, 1, 0, -1 };
 static const int DIRECTION_DY[4] = { -1, 0, 1, 0 };
 
+// Cell index
 static int GetCellIndex(const Maze& maze, int x, int y) {
 	return y * maze.width + x;
 }
 
-// Breadth-first search from the start (0,0).
-// parent[i] is the cell we came from to reach cell i (-1 for the start)
+// Path search
 static void FindParents(const Maze& maze, int* parent) {
 	int cellCount = maze.width * maze.height;
+	// dynamic array
 	int* queue = new int[cellCount];
 	int head = 0;
 	int tail = 0;
 
 	for (int i = 0; i < cellCount; i++) {
-		parent[i] = -2; // not visited yet
+		parent[i] = -2;
 	}
 
 	parent[0] = -1;
@@ -45,16 +45,15 @@ static void FindParents(const Maze& maze, int* parent) {
 		}
 	}
 
+	// free memory
 	delete[] queue;
 }
 
-// Gates are put on the only way to the exit. Each gate has a plate 2 cells before and after it,
-// so one hero holds a plate while the other one walks through
+// Place gates
 static void PlaceGates(TeamSession& session, const int* path, int pathLength) {
 	int gateCount = session.maze.width / 10;
 	int spacing = pathLength / (gateCount + 1);
 
-	// The gates need enough space between them for their plates
 	while (gateCount > 0 && spacing < 6) {
 		gateCount--;
 		spacing = pathLength / (gateCount + 1);
@@ -68,13 +67,12 @@ static void PlaceGates(TeamSession& session, const int* path, int pathLength) {
 	}
 }
 
-// Spikes are put on free cells of the way to the exit (never on the start or the exit).
-// Two spikes are never next to each other: neighbouring spikes go up and down at opposite times,
-// so a hero standing on one of them could never step onto the other one
+// Place spikes
 static void PlaceSpikes(TeamSession& session, const int* path, int pathLength, std::mt19937& random) {
 	int spikeCount = pathLength / 8;
 
 	for (int attempt = 0; attempt < spikeCount * 10 && spikeCount > 0; attempt++) {
+		// random choice
 		int position = 2 + random() % (pathLength - 4);
 		bool hasSpikeNext = session.cells[path[position - 1]] == CELL_SPIKES
 			|| session.cells[path[position + 1]] == CELL_SPIKES;
@@ -86,8 +84,7 @@ static void PlaceSpikes(TeamSession& session, const int* path, int pathLength, s
 	}
 }
 
-// Gems are put at dead ends of side ways. The first cell of that side way becomes lava (fire gem)
-// or water (water gem), so only the right hero can get the gem
+// Place gems
 static void PlaceGems(TeamSession& session, const int* parent, const bool* isOnPath, std::mt19937& random) {
 	const Maze& maze = session.maze;
 	int cellCount = maze.width * maze.height;
@@ -95,7 +92,7 @@ static void PlaceGems(TeamSession& session, const int* parent, const bool* isOnP
 	int fireGems = 0;
 	int waterGems = 0;
 
-	// A dead end is a cell with only one opening
+	// dynamic array
 	int* deadEnds = new int[cellCount];
 	int deadEndCount = 0;
 
@@ -113,8 +110,8 @@ static void PlaceGems(TeamSession& session, const int* parent, const bool* isOnP
 		}
 	}
 
-	// Shuffle the dead ends so the gems are in random places
 	for (int i = deadEndCount - 1; i > 0; i--) {
+		// random choice
 		int j = random() % (i + 1);
 		int temp = deadEnds[i];
 		deadEnds[i] = deadEnds[j];
@@ -122,14 +119,12 @@ static void PlaceGems(TeamSession& session, const int* parent, const bool* isOnP
 	}
 
 	for (int i = 0; i < deadEndCount && (fireGems < gemsPerHero || waterGems < gemsPerHero); i++) {
-		// Go back from the dead end until the next cell is on the way to the exit
 		int entrance = deadEnds[i];
 
 		while (!isOnPath[parent[entrance]]) {
 			entrance = parent[entrance];
 		}
 
-		// Skip side ways that are too short or already have a gem
 		if (entrance == deadEnds[i] || session.cells[entrance] != CELL_EMPTY) {
 			continue;
 		}
@@ -144,21 +139,25 @@ static void PlaceGems(TeamSession& session, const int* parent, const bool* isOnP
 	}
 
 	session.gemsLeft = fireGems + waterGems;
+	// free memory
 	delete[] deadEnds;
 }
 
+// Place objects
 static void PlaceObjects(TeamSession& session, unsigned int seed) {
 	const Maze& maze = session.maze;
 	int cellCount = maze.width * maze.height;
+	// random generator
 	std::mt19937 random(seed);
 
+	// dynamic array
 	int* parent = new int[cellCount];
 	int* path = new int[cellCount];
+	// dynamic array
 	bool* isOnPath = new bool[cellCount];
 
 	FindParents(maze, parent);
 
-	// The way from the exit back to the start (the maze is perfect, so there is only one)
 	int pathLength = 0;
 
 	for (int i = 0; i < cellCount; i++) {
@@ -174,11 +173,14 @@ static void PlaceObjects(TeamSession& session, unsigned int seed) {
 	PlaceSpikes(session, path, pathLength, random);
 	PlaceGems(session, parent, isOnPath, random);
 
+	// free memory
 	delete[] parent;
 	delete[] path;
+	// free memory
 	delete[] isOnPath;
 }
 
+// Send back
 static void SendBackToStart(TeamSession& session, Hero hero) {
 	session.heroes[hero].x = 0;
 	session.heroes[hero].y = 0;
@@ -186,7 +188,7 @@ static void SendBackToStart(TeamSession& session, Hero hero) {
 	session.hurtTimer = HURT_MESSAGE_TIME;
 }
 
-// Lava hurts the water hero, water hurts the fire hero, raised spikes hurt both
+// Check traps
 static void CheckHazards(TeamSession& session, Hero hero) {
 	const Player& player = session.heroes[hero];
 	CellType type = GetCellType(session, player.x, player.y);
@@ -200,6 +202,7 @@ static void CheckHazards(TeamSession& session, Hero hero) {
 	}
 }
 
+// Collect gem
 static void CollectGem(TeamSession& session, Hero hero) {
 	const Player& player = session.heroes[hero];
 	CellType& cell = session.cells[GetCellIndex(session.maze, player.x, player.y)];
@@ -210,7 +213,7 @@ static void CollectGem(TeamSession& session, Hero hero) {
 	}
 }
 
-// The team escapes when the exit is open and both heroes stand on it
+// Both escaped?
 static bool HaveBothEscaped(const TeamSession& session) {
 	int exitX = GetExitX(session.maze);
 	int exitY = GetExitY(session.maze);
@@ -220,6 +223,7 @@ static bool HaveBothEscaped(const TeamSession& session) {
 		&& session.heroes[HERO_WATER].x == exitX && session.heroes[HERO_WATER].y == exitY;
 }
 
+// Start game
 bool StartTeamSession(TeamSession& session, int mazeSize, unsigned int seed) {
 	if (!CreateMaze(session.maze, mazeSize, mazeSize)) {
 		return false;
@@ -228,7 +232,9 @@ bool StartTeamSession(TeamSession& session, int mazeSize, unsigned int seed) {
 	GenerateMaze(session.maze, seed);
 
 	int cellCount = mazeSize * mazeSize;
+	// free memory
 	delete[] session.cells;
+	// dynamic array
 	session.cells = new CellType[cellCount];
 
 	for (int i = 0; i < cellCount; i++) {
@@ -248,22 +254,27 @@ bool StartTeamSession(TeamSession& session, int mazeSize, unsigned int seed) {
 	return true;
 }
 
+// Restart game
 bool RestartTeamSession(TeamSession& session, unsigned int seed) {
 	return StartTeamSession(session, session.maze.width, seed);
 }
 
+// End game
 void EndTeamSession(TeamSession& session) {
 	DestroyMaze(session.maze);
+	// free memory
 	delete[] session.cells;
 	session.cells = nullptr;
 	session.isFinished = false;
 	session.isPaused = false;
 }
 
+// Pause game
 void SetTeamPaused(TeamSession& session, bool isPaused) {
 	session.isPaused = isPaused && !session.isFinished;
 }
 
+// Move hero
 bool TryMoveHero(TeamSession& session, Hero hero, Direction direction) {
 	if (session.isFinished || session.isPaused) {
 		return false;
@@ -294,6 +305,7 @@ bool TryMoveHero(TeamSession& session, Hero hero, Direction direction) {
 	return true;
 }
 
+// Cell type
 CellType GetCellType(const TeamSession& session, int x, int y) {
 	if (session.cells == nullptr || !IsInsideMaze(session.maze, x, y)) {
 		return CELL_EMPTY;
@@ -302,6 +314,7 @@ CellType GetCellType(const TeamSession& session, int x, int y) {
 	return session.cells[GetCellIndex(session.maze, x, y)];
 }
 
+// Gates open?
 bool AreGatesOpen(const TeamSession& session) {
 	for (int hero = 0; hero < HERO_COUNT; hero++) {
 		if (GetCellType(session, session.heroes[hero].x, session.heroes[hero].y) == CELL_PLATE) {
@@ -312,15 +325,20 @@ bool AreGatesOpen(const TeamSession& session) {
 	return false;
 }
 
+// Spikes up?
 bool AreSpikesUp(const TeamSession& session, int x, int y) {
+	// checkerboard phase
 	int phase = (x + y) % 2;
+	// every second
 	return (static_cast<int>(session.elapsedSeconds) + phase) % 2 == 0;
 }
 
+// Exit open?
 bool IsExitOpen(const TeamSession& session) {
 	return session.gemsLeft == 0;
 }
 
+// Update game
 void UpdateTeamGame(TeamSession& session, float deltaSeconds) {
 	if (session.isFinished || session.isPaused) {
 		return;
@@ -332,8 +350,6 @@ void UpdateTeamGame(TeamSession& session, float deltaSeconds) {
 		session.hurtTimer -= deltaSeconds;
 	}
 
-	// The spikes can go up while a hero is standing on them.
-	// In LAN the other computer checks its own hero, so a small time difference can't hurt it here
 	for (int hero = 0; hero < HERO_COUNT; hero++) {
 		if (hero != session.remoteHero) {
 			CheckHazards(session, static_cast<Hero>(hero));
@@ -341,10 +357,12 @@ void UpdateTeamGame(TeamSession& session, float deltaSeconds) {
 	}
 }
 
+// Remote hero
 void SetRemoteHero(TeamSession& session, int hero) {
 	session.remoteHero = (hero >= 0 && hero < HERO_COUNT) ? hero : -1;
 }
 
+// Remote move
 void ApplyRemoteHero(TeamSession& session, Hero hero, int x, int y, int moves, Direction facing) {
 	if (session.isFinished || !IsInsideMaze(session.maze, x, y)) {
 		return;
@@ -360,10 +378,12 @@ void ApplyRemoteHero(TeamSession& session, Hero hero, int x, int y, int moves, D
 	session.isFinished = HaveBothEscaped(session);
 }
 
+// Team moves
 int GetTeamMoves(const TeamSession& session) {
 	return session.heroes[HERO_FIRE].moves + session.heroes[HERO_WATER].moves;
 }
 
+// Current game
 TeamSession& GetCurrentTeamSession() {
 	return currentTeamSession;
 }

@@ -5,17 +5,17 @@
 int screenW;
 int screenH;
 
-// Selected in the main menu, used by the size select screen to start the right game
 GameMode gameMode = SINGLE_PLAYER;
-bool isLanGame = false; // true when the multiplayer game is played over the network
+bool isLanGame = false;
 
+// Screen size
 void InitScreens(int width, int height) {
 	screenW = width;
 	screenH = height;
 }
 
+// Draw screen
 void UpdateScreen(Screen& currentScreen) {
-	// The window can be resized at any time, so the size is read every frame
 	screenW = GetScreenWidth();
 	screenH = GetScreenHeight();
 

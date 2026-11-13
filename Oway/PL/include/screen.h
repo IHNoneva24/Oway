@@ -1,7 +1,8 @@
 #pragma once
 #include "enum.h"
 
+// Screen size
 void InitScreens(int width, int height);
 
-// Calls the draw function of the current screen
+// Draw screen
 void UpdateScreen(Screen& currentScreen);

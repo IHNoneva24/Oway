@@ -1,9 +1,11 @@
 #include "screens.h"
 #include "ui.h"
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
 
+// Main menu
 void DrawMainMenu(Screen& currentScreen) {
 	DrawDungeonBackground();
 

@@ -2,16 +2,17 @@
 #include "ui.h"
 #include "Leaderboard.h"
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
 
 static int selectedSize = MIN_MAZE_SIZE;
 
-// The results are read from the database only when the size changes, not every frame
 static ResultRecord results[LEADERBOARD_SIZE];
 static int resultCount = 0;
 static int loadedSize = -1;
 
+// Change size
 static void ChangeSelectedSize(int delta) {
 	selectedSize += delta;
 
@@ -19,7 +20,7 @@ static void ChangeSelectedSize(int delta) {
 	if (selectedSize > MAX_MAZE_SIZE) selectedSize = MIN_MAZE_SIZE;
 }
 
-// One row of the table, the columns are at fixed parts of the panel width
+// Table row
 static void DrawRow(float x, float y, float width, const char* rank, const char* name,
 	const char* time, const char* moves, const char* date, Color color) {
 	int fontSize = static_cast<int>(Scaled(28));
@@ -31,6 +32,7 @@ static void DrawRow(float x, float y, float width, const char* rank, const char*
 	DrawText(date, static_cast<int>(x + width * 0.72f), static_cast<int>(y), fontSize, color);
 }
 
+// Leaderboard screen
 void DrawLeaderboard(Screen& currentScreen) {
 	DrawDungeonBackground();
 
@@ -43,7 +45,6 @@ void DrawLeaderboard(Screen& currentScreen) {
 	float y = panelY + Scaled(35);
 	DrawCenteredText("LEADERBOARD", y, Scaled(64), COLOR_ACCENT);
 
-	// Size selector
 	y += Scaled(100);
 	float arrowSize = Scaled(70);
 
@@ -59,7 +60,6 @@ void DrawLeaderboard(Screen& currentScreen) {
 
 	DrawCenteredText(TextFormat("%d x %d", selectedSize, selectedSize), y + Scaled(12), Scaled(46), RAYWHITE);
 
-	// Table
 	y += Scaled(110);
 	float tableX = panelX + Scaled(60);
 	float tableWidth = panelWidth - Scaled(120);
@@ -93,7 +93,7 @@ void DrawLeaderboard(Screen& currentScreen) {
 	}
 
 	if (DrawCenteredButton(panelY + panelHeight - Scaled(100), "Back") || IsKeyPressed(KEY_ESCAPE)) {
-		loadedSize = -1; // reload next time, there may be new results
+		loadedSize = -1;
 		currentScreen = MAINMENU;
 	}
 }

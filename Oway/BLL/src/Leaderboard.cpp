@@ -1,6 +1,7 @@
 #include "Leaderboard.h"
 #include <cstring>
 
+// Allowed character
 static bool IsAllowedNameCharacter(char character) {
 	return (character >= 'a' && character <= 'z')
 		|| (character >= 'A' && character <= 'Z')
@@ -8,18 +9,22 @@ static bool IsAllowedNameCharacter(char character) {
 		|| character == ' ' || character == '_' || character == '-';
 }
 
+// Open leaderboard
 bool InitLeaderboard(const char* databasePath) {
 	return OpenDatabase(databasePath);
 }
 
+// Close leaderboard
 void ShutdownLeaderboard() {
 	CloseDatabase();
 }
 
+// Leaderboard ready?
 bool IsLeaderboardAvailable() {
 	return IsDatabaseOpen();
 }
 
+// Name check
 bool IsValidPlayerName(const char* name) {
 	if (name == nullptr) {
 		return false;
@@ -41,6 +46,7 @@ bool IsValidPlayerName(const char* name) {
 	return length > 0 && hasVisibleCharacter;
 }
 
+// Save result
 SaveResultStatus SaveGameResult(const GameSession& session, const char* playerName, int& rank) {
 	if (!session.isFinished) {
 		return SAVE_NOT_FINISHED;
@@ -51,12 +57,12 @@ SaveResultStatus SaveGameResult(const GameSession& session, const char* playerNa
 	}
 
 	ResultRecord record;
+	// safe copy
 	strncpy_s(record.playerName, sizeof(record.playerName), playerName, _TRUNCATE);
 	record.mazeSize = session.maze.width;
 	record.timeSeconds = session.elapsedSeconds;
 	record.moves = session.player.moves;
 
-	// The rank is calculated before the insert, so the new result isn't compared with itself
 	int newRank = SelectRankForTime(record.mazeSize, record.timeSeconds);
 
 	if (newRank < 0 || !InsertResult(record)) {
@@ -67,6 +73,7 @@ SaveResultStatus SaveGameResult(const GameSession& session, const char* playerNa
 	return SAVE_OK;
 }
 
+// Top results
 int GetLeaderboard(int mazeSize, ResultRecord* results) {
 	if (!IsValidMazeSize(mazeSize)) {
 		return 0;

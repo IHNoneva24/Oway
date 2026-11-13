@@ -3,8 +3,10 @@
 static const int DIRECTION_DX[4] = { 0, 1, 0, -1 };
 static const int DIRECTION_DY[4] = { -1, 0, 1, 0 };
 
+// Reachable cells
 int CountReachableCells(const Maze& maze) {
 	int cellCount = maze.width * maze.height;
+	// dynamic array
 	bool* visited = new bool[cellCount];
 	int* queue = new int[cellCount];
 	int head = 0;
@@ -17,7 +19,6 @@ int CountReachableCells(const Maze& maze) {
 	visited[0] = true;
 	queue[tail++] = 0;
 
-	// Breadth-first search from the start
 	while (head < tail) {
 		int current = queue[head++];
 		int x = current % maze.width;
@@ -37,15 +38,16 @@ int CountReachableCells(const Maze& maze) {
 		}
 	}
 
+	// free memory
 	delete[] visited;
 	delete[] queue;
 	return tail;
 }
 
+// Count openings
 int CountPassages(const Maze& maze) {
 	int passages = 0;
 
-	// Only right and down, so every opening is counted once
 	for (int y = 0; y < maze.height; y++) {
 		for (int x = 0; x < maze.width; x++) {
 			if (x + 1 < maze.width && !HasWall(maze, x, y, DIRECTION_RIGHT)) passages++;
@@ -56,10 +58,12 @@ int CountPassages(const Maze& maze) {
 	return passages;
 }
 
+// Opposite direction
 Direction GetOppositeDirection(Direction direction) {
 	return static_cast<Direction>((direction + 2) % 4);
 }
 
+// Open neighbour
 bool FindOpenNeighbour(const Maze& maze, int x, int y, int& neighbourX, int& neighbourY, Direction& towardsCell) {
 	for (int dir = 0; dir < 4; dir++) {
 		if (!HasWall(maze, x, y, static_cast<Direction>(dir))) {

@@ -2,6 +2,7 @@
 #include "testFramework.h"
 #include "RaceGame.h"
 
+// Same mazes
 static void TestSameMazes() {
 	RaceSession session;
 
@@ -20,6 +21,7 @@ static void TestSameMazes() {
 	EndRaceSession(session);
 }
 
+// Own mazes
 static void TestOwnMazes() {
 	RaceSession session;
 	StartRaceSession(session, 12, 5u);
@@ -34,13 +36,13 @@ static void TestOwnMazes() {
 	EndRaceSession(session);
 }
 
+// Winner
 static void TestWinner() {
 	RaceSession session;
 	StartRaceSession(session, 10, 8u);
 
 	CheckEqual(-1, GetRaceWinner(session), "nobody wins before somebody escapes");
 
-	// The LAN function puts a racer on the exit directly
 	ApplyRemoteRacer(session, 1, 9, 9, 40, DIRECTION_DOWN, true, 12.5f);
 	CheckEqual(1, GetRaceWinner(session), "player 2 is the winner after escaping first");
 	Check(!session.isFinished, "the race goes on until both racers are out");
@@ -53,6 +55,7 @@ static void TestWinner() {
 	EndRaceSession(session);
 }
 
+// Remote racer
 static void TestRemoteRacer() {
 	RaceSession session;
 	StartRaceSession(session, 10, 4u);
@@ -67,6 +70,7 @@ static void TestRemoteRacer() {
 	EndRaceSession(session);
 }
 
+// Race tests
 void RunRaceTests() {
 	BeginTestGroup("Race mode (BLL/RaceGame)");
 

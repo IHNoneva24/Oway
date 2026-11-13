@@ -1,17 +1,14 @@
 #pragma once
 #include "Maze.h"
 
-// Helpers used by several test groups
-
-// How many cells can be reached from 0,0 without going through walls
+// Reachable cells
 int CountReachableCells(const Maze& maze);
 
-// How many openings (removed walls) the maze has between neighbouring cells
+// Count openings
 int CountPassages(const Maze& maze);
 
-// Finds a neighbour of (x, y) with no wall between them.
-// "towardsCell" is the direction to walk from the neighbour back to (x, y)
+// Open neighbour
 bool FindOpenNeighbour(const Maze& maze, int x, int y, int& neighbourX, int& neighbourY, Direction& towardsCell);
 
-// Opposite direction (up <-> down, left <-> right)
+// Opposite direction
 Direction GetOppositeDirection(Direction direction);

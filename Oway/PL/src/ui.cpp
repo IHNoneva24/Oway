@@ -2,6 +2,7 @@
 #include "assets.h"
 #include <cstring>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
 
@@ -9,15 +10,18 @@ static const float BASE_HEIGHT = 1080.0f;
 static const float BUTTON_WIDTH = 360.0f;
 static const float BUTTON_HEIGHT = 70.0f;
 
+// UI scale
 float GetUiScale() {
 	float scale = screenH / BASE_HEIGHT;
 	return scale < 0.5f ? 0.5f : scale;
 }
 
+// Scaled value
 float Scaled(float value) {
 	return value * GetUiScale();
 }
 
+// Draw button
 bool DrawButton(Rectangle rect, const char* text) {
 	Vector2 mouse = GetMousePosition();
 	bool isHover = CheckCollisionPointRec(mouse, rect);
@@ -34,17 +38,20 @@ bool DrawButton(Rectangle rect, const char* text) {
 	return isHover && IsMouseButtonReleased(MOUSE_LEFT_BUTTON);
 }
 
+// Centered button
 bool DrawCenteredButton(float y, const char* text) {
 	float width = Scaled(BUTTON_WIDTH);
 	return DrawButton({ screenW / 2.0f - width / 2, y, width, Scaled(BUTTON_HEIGHT) }, text);
 }
 
+// Centered text
 void DrawCenteredText(const char* text, float y, float fontSize, Color color) {
 	int size = static_cast<int>(fontSize);
 	int textWidth = MeasureText(text, size);
 	DrawText(text, screenW / 2 - textWidth / 2, static_cast<int>(y), size, color);
 }
 
+// Draw background
 void DrawDungeonBackground() {
 	const GameAssets& assets = GetAssets();
 	float tile = Scaled(64);
@@ -59,11 +66,13 @@ void DrawDungeonBackground() {
 	DrawRectangle(0, 0, screenW, screenH, { 10, 6, 12, 150 });
 }
 
+// Draw panel
 void DrawPanel(Rectangle rect) {
 	DrawRectangleRec(rect, COLOR_PANEL);
 	DrawRectangleLinesEx(rect, Scaled(3), { 92, 60, 52, 255 });
 }
 
+// Draw torch
 void DrawTorch(float x, float y, float size) {
 	const GameAssets& assets = GetAssets();
 	Texture2D frame = assets.torch[GetAnimationFrame()];
@@ -72,12 +81,13 @@ void DrawTorch(float x, float y, float size) {
 		{ x, y, size, size }, { 0, 0 }, 0.0f, WHITE);
 }
 
+// Text input
 bool UpdateTextInput(char* text, int maxLength, bool digitsOnly) {
 	int length = static_cast<int>(strlen(text));
 	bool isChanged = false;
+	// typed characters
 	int key = GetCharPressed();
 
-	// Only printable ASCII characters can be typed
 	while (key > 0) {
 		bool isAllowed = digitsOnly ? (key >= '0' && key <= '9') : (key >= 32 && key <= 126);
 
@@ -87,9 +97,11 @@ bool UpdateTextInput(char* text, int maxLength, bool digitsOnly) {
 			isChanged = true;
 		}
 
+		// typed characters
 		key = GetCharPressed();
 	}
 
+	// delete character
 	if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) && length > 0) {
 		text[--length] = '\0';
 		isChanged = true;
@@ -98,12 +110,15 @@ bool UpdateTextInput(char* text, int maxLength, bool digitsOnly) {
 	return isChanged;
 }
 
+// Filtered input
 bool UpdateFilteredTextInput(char* text, int maxLength, const char* allowedCharacters) {
 	int length = static_cast<int>(strlen(text));
 	bool isChanged = false;
+	// typed characters
 	int key = GetCharPressed();
 
 	while (key > 0) {
+		// allowed character
 		bool isAllowed = key < 128 && strchr(allowedCharacters, key) != nullptr;
 
 		if (isAllowed && length < maxLength) {
@@ -112,9 +127,11 @@ bool UpdateFilteredTextInput(char* text, int maxLength, const char* allowedChara
 			isChanged = true;
 		}
 
+		// typed characters
 		key = GetCharPressed();
 	}
 
+	// delete character
 	if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) && length > 0) {
 		text[--length] = 0;
 		isChanged = true;
@@ -123,10 +140,12 @@ bool UpdateFilteredTextInput(char* text, int maxLength, const char* allowedChara
 	return isChanged;
 }
 
+// Draw input box
 void DrawTextBox(Rectangle box, const char* text, float fontSize, bool hasError) {
 	DrawPanel(box);
 	DrawRectangleLinesEx(box, Scaled(3), hasError ? COLOR_ERROR : COLOR_ACCENT);
 
+	// idle animation
 	bool isCursorVisible = static_cast<int>(GetTime() * 2) % 2 == 0;
 	const char* shown = isCursorVisible ? TextFormat("%s_", text) : text;
 	int size = static_cast<int>(fontSize);

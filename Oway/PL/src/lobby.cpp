@@ -5,40 +5,45 @@
 #include "Maze.h"
 #include <ctime>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
+// from screen.cpp
 extern GameMode gameMode;
 
-// What the lobby shows at the moment
+// Lobby views
 enum LobbyView {
-	VIEW_CHOOSE,   // host or join
-	VIEW_HOST,     // waiting for a player / choosing the size
-	VIEW_JOIN,     // typing the host's IP
-	VIEW_WAITING   // client: connecting or waiting for the host to start
+	VIEW_CHOOSE,
+	VIEW_HOST,
+	VIEW_JOIN,
+	VIEW_WAITING
 };
 
 static LobbyView view = VIEW_CHOOSE;
 static char ipInput[IP_TEXT_LENGTH] = "";
 static char localIp[IP_TEXT_LENGTH] = "";
 static int mazeSize = 20;
-static const char* message = "";   // error or info text under the panel
+static const char* message = "";
 static bool isMessageError = false;
 
+// Show message
 static void ShowMessage(const char* text, bool isError) {
 	message = text;
 	isMessageError = isError;
 }
 
+// Reset screen
 static void ResetLobbyScreen() {
 	view = VIEW_CHOOSE;
 	ShowMessage("", false);
 }
 
+// Mode name
 static const char* GetModeName() {
 	return gameMode == TEAM_PLAY ? "TEAM PLAY" : "RACE";
 }
 
-// One row of the player list
+// Player row
 static void DrawPlayerRow(float y, const char* name, const char* status, Color statusColor) {
 	float left = screenW / 2.0f - Scaled(330);
 	int fontSize = static_cast<int>(Scaled(32));
@@ -47,6 +52,7 @@ static void DrawPlayerRow(float y, const char* name, const char* status, Color s
 	DrawText(status, static_cast<int>(left + Scaled(380)), static_cast<int>(y), fontSize, statusColor);
 }
 
+// Player list
 static void DrawPlayerList(float y, bool isOtherConnected) {
 	bool isLocalHost = IsHost();
 
@@ -55,6 +61,7 @@ static void DrawPlayerList(float y, bool isOtherConnected) {
 		isOtherConnected ? "ready" : "waiting...", isOtherConnected ? COLOR_ACCENT : COLOR_TEXT_DIM);
 }
 
+// Host or join
 static void DrawChooseView(Screen& currentScreen, float y) {
 	DrawCenteredText("Play with a friend on the same network", y, Scaled(30), COLOR_TEXT_DIM);
 
@@ -83,6 +90,7 @@ static void DrawChooseView(Screen& currentScreen, float y) {
 	}
 }
 
+// Host view
 static void DrawHostView(Screen& currentScreen, float y) {
 	DrawCenteredText("Your IP address:", y, Scaled(28), COLOR_TEXT_DIM);
 	DrawCenteredText(localIp, y + Scaled(40), Scaled(56), COLOR_ACCENT);
@@ -90,7 +98,6 @@ static void DrawHostView(Screen& currentScreen, float y) {
 
 	DrawPlayerList(y + Scaled(160), IsLobbyReady());
 
-	// Maze size, chosen by the host
 	float sizeY = y + Scaled(290);
 	float smallButton = Scaled(70);
 	DrawCenteredText(TextFormat("Maze: %d x %d", mazeSize, mazeSize), sizeY + Scaled(16), Scaled(36), RAYWHITE);
@@ -125,6 +132,7 @@ static void DrawHostView(Screen& currentScreen, float y) {
 	}
 }
 
+// Join view
 static void DrawJoinView(float y) {
 	DrawCenteredText("Type the IP address of the host:", y, Scaled(28), COLOR_TEXT_DIM);
 
@@ -154,6 +162,7 @@ static void DrawJoinView(float y) {
 	}
 }
 
+// Waiting view
 static void DrawWaitingView(float y) {
 	bool isConnected = IsLobbyReady();
 	const char* status = isConnected ? "Waiting for the host to start..." : TextFormat("Connecting to %s...", ipInput);
@@ -167,7 +176,7 @@ static void DrawWaitingView(float y) {
 	}
 }
 
-// The host keeps the lobby open for a new player, the client goes back to the IP input
+// Wait again
 static void WaitForNextPlayer() {
 	if (view == VIEW_HOST) {
 		if (!HostLobby()) {
@@ -180,7 +189,7 @@ static void WaitForNextPlayer() {
 	}
 }
 
-// Reacts to what happened on the network this frame
+// Lobby events
 static void HandleLobbyEvents(Screen& currentScreen) {
 	LobbySettings settings;
 	LobbyEvent event = UpdateLobby(settings);
@@ -195,7 +204,6 @@ static void HandleLobbyEvents(Screen& currentScreen) {
 		break;
 
 	case LOBBY_GAME_STARTED:
-		// The game mode comes from the host, so both play the same mode
 		gameMode = static_cast<GameMode>(settings.mode);
 
 		if (StartLanSession(settings, currentScreen)) {
@@ -221,7 +229,6 @@ static void HandleLobbyEvents(Screen& currentScreen) {
 		break;
 	}
 
-	// Errors like "Could not reach the host" send the client back to the IP input
 	if (GetNetworkState() == NETWORK_ERROR) {
 		ShowMessage(GetNetworkError(), true);
 		LeaveLobby();
@@ -229,6 +236,7 @@ static void HandleLobbyEvents(Screen& currentScreen) {
 	}
 }
 
+// Lobby screen
 void DrawLobby(Screen& currentScreen) {
 	DrawDungeonBackground();
 

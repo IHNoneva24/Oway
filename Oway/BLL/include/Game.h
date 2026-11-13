@@ -1,15 +1,15 @@
 #pragma once
 #include "Maze.h"
 
-// Game session logic (player, movement, timer, win)
-
+// Player data
 struct Player {
 	int x = 0;
 	int y = 0;
 	int moves = 0;
-	Direction facing = DIRECTION_RIGHT; // last direction the player moved in
+	Direction facing = DIRECTION_RIGHT;
 };
 
+// Game state
 struct GameSession {
 	Maze maze;
 	Player player;
@@ -18,24 +18,26 @@ struct GameSession {
 	bool isPaused = false;
 };
 
-// Creates and generates a new maze, places the player at 0,0
+// Start game
 bool StartGameSession(GameSession& session, int mazeSize, unsigned int seed);
 
-// Generates a new maze with the same size and starts again from 0,0
+// Restart game
 bool RestartGameSession(GameSession& session, unsigned int seed);
 
+// End game
 void EndGameSession(GameSession& session);
 
-// While paused the timer stops and the player can't move
+// Pause game
 void SetPaused(GameSession& session, bool isPaused);
 
-// Moves the player one cell if there is no wall. Returns true if the player moved
+// Move player
 bool TryMovePlayer(GameSession& session, Direction direction);
 
+// Exit check
 bool HasReachedExit(const GameSession& session);
 
-// Adds the frame time to the timer while the game is running
+// Update timer
 void UpdateGameTime(GameSession& session, float deltaSeconds);
 
-// The single session shared between the screens
+// Current game
 GameSession& GetCurrentSession();

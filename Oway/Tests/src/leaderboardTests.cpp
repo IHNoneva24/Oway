@@ -4,10 +4,12 @@
 #include <filesystem>
 #include <string>
 
+// Test database
 static std::string GetTestDatabasePath() {
 	return (std::filesystem::temp_directory_path() / "oway_tests" / "leaderboard_test.db").string();
 }
 
+// Name rules
 static void TestNameValidation() {
 	Check(IsValidPlayerName("Galin"), "\"Galin\" is a valid name");
 	Check(IsValidPlayerName("Team_2 - A"), "letters, digits, spaces, _ and - are allowed");
@@ -20,7 +22,7 @@ static void TestNameValidation() {
 	Check(!IsValidPlayerName(nullptr), "a missing name (nullptr) is rejected");
 }
 
-// A finished single player game with the given result
+// Finished game
 static void FinishGame(GameSession& session, int size, float timeSeconds, int moves) {
 	StartGameSession(session, size, 1u);
 	session.elapsedSeconds = timeSeconds;
@@ -28,6 +30,7 @@ static void FinishGame(GameSession& session, int size, float timeSeconds, int mo
 	session.isFinished = true;
 }
 
+// Saving
 static void TestSaving() {
 	std::filesystem::remove_all(std::filesystem::temp_directory_path() / "oway_tests");
 	Check(InitLeaderboard(GetTestDatabasePath().c_str()), "the leaderboard opens its database");
@@ -72,6 +75,7 @@ static void TestSaving() {
 	std::filesystem::remove_all(std::filesystem::temp_directory_path() / "oway_tests");
 }
 
+// Leaderboard tests
 void RunLeaderboardTests() {
 	BeginTestGroup("Leaderboard (BLL/Leaderboard)");
 

@@ -5,11 +5,13 @@
 #include "lanSession.h"
 #include <ctime>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
+// from screen.cpp
 extern bool isLanGame;
 
-// LAN: only the host can start a rematch, the other player waits for it
+// LAN buttons
 static void DrawLanButtons(const RaceSession& session, Screen& currentScreen, float y) {
 	UpdateLanSession(currentScreen);
 
@@ -33,6 +35,7 @@ static void DrawLanButtons(const RaceSession& session, Screen& currentScreen, fl
 	DrawLanLeaveMenu(currentScreen);
 }
 
+// Race results
 void DrawRaceWin(Screen& currentScreen) {
 	RaceSession& session = GetCurrentRaceSession();
 

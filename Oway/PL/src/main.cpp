@@ -5,10 +5,12 @@
 #include "Leaderboard.h"
 #include "Network.h"
 
+// Entry point
 int main() {
     const int windowWidth = 1280;
     const int windowHeight = 720;
 
+    // window options
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
     InitWindow(windowWidth, windowHeight, "Oway");
     SetWindowMinSize(800, 600);
@@ -18,18 +20,19 @@ int main() {
 
     LoadAssets();
 
-    // The database is kept next to the executable. If it can't be opened the game still works without a leaderboard
+    // exe folder
     InitLeaderboard(TextFormat("%sdata/oway.db", GetApplicationDirectory()));
 
-    // Without the network the game still works, only LAN co-op is unavailable
     InitNetwork();
 
+    // fullscreen
     ToggleBorderlessWindowed();
 
     Screen currentScreen = MAINMENU;
 
     while (!WindowShouldClose() && currentScreen != EXITGAME) {
         if (IsKeyPressed(KEY_F11)) {
+            // fullscreen
             ToggleBorderlessWindowed();
         }
 

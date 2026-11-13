@@ -5,14 +5,17 @@
 #include "TeamGame.h"
 #include <ctime>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
+// from screen.cpp
 extern GameMode gameMode;
 extern bool isLanGame;
 
 static bool isLeaveMenuOpen = false;
-static const char* notice = ""; // shown when the connection ended
+static const char* notice = "";
 
+// End LAN game
 static void EndLanGame(Screen& currentScreen) {
 	LeaveLanGame();
 	isLanGame = false;
@@ -29,6 +32,7 @@ static void EndLanGame(Screen& currentScreen) {
 	currentScreen = MAINMENU;
 }
 
+// Start LAN game
 bool StartLanSession(const LobbySettings& settings, Screen& currentScreen) {
 	bool isStarted = false;
 	gameMode = static_cast<GameMode>(settings.mode);
@@ -37,7 +41,6 @@ bool StartLanSession(const LobbySettings& settings, Screen& currentScreen) {
 		TeamSession& session = GetCurrentTeamSession();
 		isStarted = StartTeamSession(session, settings.mazeSize, settings.seed);
 
-		// This computer moves its own hero, the other hero comes from the network
 		SetRemoteHero(session, 1 - GetLocalPlayer());
 		currentScreen = TEAMGAME;
 	}
@@ -52,6 +55,7 @@ bool StartLanSession(const LobbySettings& settings, Screen& currentScreen) {
 	return isStarted;
 }
 
+// Host rematch
 bool HostLanRematch(int mazeSize, Screen& currentScreen) {
 	LobbySettings settings;
 	settings.mode = gameMode;
@@ -61,6 +65,7 @@ bool HostLanRematch(int mazeSize, Screen& currentScreen) {
 	return StartLanRematch(settings) && StartLanSession(settings, currentScreen);
 }
 
+// LAN events
 void UpdateLanSession(Screen& currentScreen) {
 	if (notice[0] != '\0') {
 		return;
@@ -86,10 +91,12 @@ void UpdateLanSession(Screen& currentScreen) {
 	}
 }
 
+// Toggle menu
 void ToggleLanLeaveMenu() {
 	isLeaveMenuOpen = !isLeaveMenuOpen;
 }
 
+// Leave menu
 bool DrawLanLeaveMenu(Screen& currentScreen) {
 	if (!isLeaveMenuOpen) {
 		return false;
@@ -114,6 +121,7 @@ bool DrawLanLeaveMenu(Screen& currentScreen) {
 	return true;
 }
 
+// Player left
 bool DrawLanNotice(Screen& currentScreen) {
 	if (notice[0] == '\0') {
 		return false;

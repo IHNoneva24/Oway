@@ -2,23 +2,20 @@
 #include "enum.h"
 #include "Lobby.h"
 
-// Shared by the race and team screens when the game is played over LAN
-
-// Starts the race or team game with the settings both computers share and opens its screen
+// Start LAN game
 bool StartLanSession(const LobbySettings& settings, Screen& currentScreen);
 
-// Host: starts a new maze of the same mode and size on both computers
+// Host rematch
 bool HostLanRematch(int mazeSize, Screen& currentScreen);
 
-// Reacts to a rematch or the other player leaving. Call once per frame on the LAN game and win screens
+// LAN events
 void UpdateLanSession(Screen& currentScreen);
 
-// ESC menu of a LAN game. The game is not paused, because the other player keeps playing.
-// Returns true while the menu is open
+// Leave menu
 bool DrawLanLeaveMenu(Screen& currentScreen);
 
-// Opens or closes the ESC menu
+// Toggle menu
 void ToggleLanLeaveMenu();
 
-// "The other player left" message with a button back to the menu. Returns true while it is shown
+// Player left
 bool DrawLanNotice(Screen& currentScreen);

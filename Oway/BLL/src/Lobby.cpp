@@ -4,11 +4,13 @@
 static bool isHelloSent = false;
 static bool isReady = false;
 
+// Reset lobby
 static void ResetLobby() {
 	isHelloSent = false;
 	isReady = false;
 }
 
+// Send hello
 static void SendHello() {
 	NetworkMessage hello;
 	hello.type = MESSAGE_HELLO;
@@ -18,16 +20,19 @@ static void SendHello() {
 	isHelloSent = true;
 }
 
+// Host lobby
 bool HostLobby() {
 	ResetLobby();
 	return StartHosting(DEFAULT_PORT);
 }
 
+// Join lobby
 bool JoinLobby(const char* ipAddress) {
 	ResetLobby();
 	return StartJoining(ipAddress, DEFAULT_PORT);
 }
 
+// Update lobby
 LobbyEvent UpdateLobby(LobbySettings& settings) {
 	NetworkState stateBefore = GetNetworkState();
 	UpdateNetwork();
@@ -42,7 +47,6 @@ LobbyEvent UpdateLobby(LobbySettings& settings) {
 		return LOBBY_NOTHING;
 	}
 
-	// Both sides say hello with their version as soon as they are connected
 	if (!isHelloSent) {
 		SendHello();
 	}
@@ -61,7 +65,6 @@ LobbyEvent UpdateLobby(LobbySettings& settings) {
 			return IsHost() ? LOBBY_PLAYER_JOINED : LOBBY_CONNECTED;
 
 		case MESSAGE_START:
-			// Only the host can start a game, and the size must be valid
 			if (!IsHost() && isReady && IsValidMazeSize(message.value)) {
 				settings.mode = message.player;
 				settings.mazeSize = message.value;
@@ -75,17 +78,19 @@ LobbyEvent UpdateLobby(LobbySettings& settings) {
 			return LOBBY_PLAYER_LEFT;
 
 		default:
-			break; // game messages are not used in the lobby
+			break;
 		}
 	}
 
 	return LOBBY_NOTHING;
 }
 
+// Lobby ready?
 bool IsLobbyReady() {
 	return isReady && GetNetworkState() == NETWORK_CONNECTED;
 }
 
+// Start game
 bool StartLobbyGame(const LobbySettings& settings) {
 	if (!IsHost() || !IsLobbyReady() || !IsValidMazeSize(settings.mazeSize)) {
 		return false;
@@ -100,11 +105,13 @@ bool StartLobbyGame(const LobbySettings& settings) {
 	return SendNetworkMessage(start);
 }
 
+// Leave lobby
 void LeaveLobby() {
 	Disconnect();
 	ResetLobby();
 }
 
+// Local player
 int GetLocalPlayer() {
 	return IsHost() ? HOST_PLAYER : CLIENT_PLAYER;
 }

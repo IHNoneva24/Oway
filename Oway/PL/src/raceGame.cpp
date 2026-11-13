@@ -7,24 +7,23 @@
 #include "lanSession.h"
 #include <ctime>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
+// from screen.cpp
 extern bool isLanGame;
 
 static const float VIEW_MARGIN = 20.0f;
 
-// Column of each racer's sprite in Dungeon_Character.png
 static const int RACER_SPRITE_COLUMNS[RACER_COUNT] = { 0, 3 };
 static const char* RACER_KEYS[RACER_COUNT] = { "WASD", "Arrows" };
 
-// Keys for up, right, down and left (same order as the Direction enum)
 static const int RACER_KEY_CODES[RACER_COUNT][4] = {
 	{ KEY_W, KEY_D, KEY_S, KEY_A },
 	{ KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT }
 };
 
-// Player 1 moves with WASD, player 2 with the arrow keys.
-// In LAN this computer moves only its own racer, with any of the two key sets
+// Movement keys
 static void HandleMovement(RaceSession& session) {
 	if (isLanGame) {
 		int local = GetLocalPlayer();
@@ -53,7 +52,7 @@ static void HandleMovement(RaceSession& session) {
 	}
 }
 
-// One half of the screen: a label, the racer's own maze and the racer in it
+// Racer view
 static void DrawRacerView(const RaceSession& session, int racer, Rectangle area) {
 	const Player& player = session.racers[racer];
 	bool isOut = session.hasEscaped[racer];
@@ -73,12 +72,11 @@ static void DrawRacerView(const RaceSession& session, int racer, Rectangle area)
 	DrawMazeWallsIn(maze, area);
 	DrawExitIn(maze, area, true);
 
-	// The sprites switch between two frames for an idle animation
+	// idle animation
 	int frameRow = static_cast<int>(GetTime() * 2) % 2 == 0 ? 0 : 2;
 	Rectangle playerTile = GetCellRectIn(maze, area, player.x, player.y);
 	DrawTile(GetAssets().characters, RACER_SPRITE_COLUMNS[racer], frameRow, playerTile, player.facing == DIRECTION_LEFT);
 
-	// The half of a racer who is out gets darker while the other one still plays
 	if (isOut && !session.isFinished) {
 		const char* message = TextFormat("ESCAPED in %.1f s", session.escapeSeconds[racer]);
 		int fontSize = static_cast<int>(Scaled(48));
@@ -89,6 +87,7 @@ static void DrawRacerView(const RaceSession& session, int racer, Rectangle area)
 	}
 }
 
+// Draw HUD
 static void DrawRaceHud(const RaceSession& session) {
 	float height = Scaled(HUD_HEIGHT);
 	int fontSize = static_cast<int>(Scaled(30));
@@ -105,6 +104,7 @@ static void DrawRaceHud(const RaceSession& session) {
 	DrawText(hint, screenW - MeasureText(hint, fontSize) - static_cast<int>(Scaled(30)), textY, fontSize, COLOR_TEXT_DIM);
 }
 
+// Pause menu
 static void DrawRacePauseMenu(RaceSession& session, Screen& currentScreen) {
 	DrawRectangle(0, 0, screenW, screenH, { 0, 0, 0, 170 });
 
@@ -127,7 +127,7 @@ static void DrawRacePauseMenu(RaceSession& session, Screen& currentScreen) {
 	}
 }
 
-// LAN: sends this computer's racer and puts the other racer where the network says
+// LAN sync
 static void SyncLanRace(RaceSession& session, Screen& currentScreen) {
 	int local = GetLocalPlayer();
 	SendLocalPlayer(session.racers[local]);
@@ -143,10 +143,10 @@ static void SyncLanRace(RaceSession& session, Screen& currentScreen) {
 		remote.hasEscaped, remote.escapeSeconds);
 }
 
+// Race screen
 void DrawRaceGame(Screen& currentScreen) {
 	RaceSession& session = GetCurrentRaceSession();
 
-	// In LAN ESC doesn't pause, because the other player keeps playing
 	if (IsKeyPressed(KEY_ESCAPE)) {
 		if (isLanGame) {
 			ToggleLanLeaveMenu();
@@ -169,7 +169,6 @@ void DrawRaceGame(Screen& currentScreen) {
 
 	ClearBackground(COLOR_BACKGROUND);
 
-	// Split screen: player 1 on the left, player 2 on the right
 	float margin = Scaled(VIEW_MARGIN);
 	float top = Scaled(HUD_HEIGHT) + margin;
 	float height = screenH - top - margin;

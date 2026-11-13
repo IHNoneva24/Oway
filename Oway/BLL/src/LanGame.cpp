@@ -1,11 +1,11 @@
 #include "LanGame.h"
 
-// The last state that was sent, so nothing is sent while the player stands still
 static Player lastSent;
 static bool hasSentState = false;
 static bool isEscapeSent = false;
 static RemotePlayer remote;
 
+// Reset sync
 void ResetLanGame() {
 	lastSent = Player{};
 	hasSentState = false;
@@ -13,10 +13,12 @@ void ResetLanGame() {
 	remote = RemotePlayer{};
 }
 
+// Other player
 const RemotePlayer& GetRemotePlayer() {
 	return remote;
 }
 
+// Send position
 void SendLocalPlayer(const Player& player) {
 	bool isChanged = !hasSentState || player.x != lastSent.x || player.y != lastSent.y
 		|| player.moves != lastSent.moves || player.facing != lastSent.facing;
@@ -39,6 +41,7 @@ void SendLocalPlayer(const Player& player) {
 	}
 }
 
+// Send escape
 void SendLocalEscape(float escapeSeconds) {
 	if (isEscapeSent) {
 		return;
@@ -52,17 +55,15 @@ void SendLocalEscape(float escapeSeconds) {
 	isEscapeSent = SendNetworkMessage(escaped);
 }
 
+// Update sync
 LanGameEvent UpdateLanGame(LobbySettings& settings) {
 	remote.hasUpdate = false;
 	UpdateNetwork();
 
-	// The messages that arrived before the connection closed are still read,
-	// so a "bye" is noticed even when the other computer closed the connection right after it
 	bool isConnectionLost = GetNetworkState() == NETWORK_ERROR;
 	NetworkMessage message;
 
 	while (ReceiveNetworkMessage(message)) {
-		// Messages about our own player can't come from the other computer
 		bool isFromOther = message.player != GetLocalPlayer();
 
 		switch (message.type) {
@@ -85,7 +86,6 @@ LanGameEvent UpdateLanGame(LobbySettings& settings) {
 			break;
 
 		case MESSAGE_START:
-			// Only the host can start a rematch
 			if (!IsHost() && IsValidMazeSize(message.value)) {
 				settings.mode = message.player;
 				settings.mazeSize = message.value;
@@ -107,11 +107,13 @@ LanGameEvent UpdateLanGame(LobbySettings& settings) {
 	return isConnectionLost ? LAN_CONNECTION_LOST : LAN_NOTHING;
 }
 
+// Start rematch
 bool StartLanRematch(const LobbySettings& settings) {
 	ResetLanGame();
 	return StartLobbyGame(settings);
 }
 
+// Leave game
 void LeaveLanGame() {
 	ResetLanGame();
 	LeaveLobby();

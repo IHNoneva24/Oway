@@ -3,7 +3,7 @@
 #include "testHelpers.h"
 #include "TeamGame.h"
 
-// Finds the first cell of the given type. Returns false if the maze has none
+// Find cell
 static bool FindCell(const TeamSession& session, CellType type, int& x, int& y) {
 	for (y = 0; y < session.maze.height; y++) {
 		for (x = 0; x < session.maze.width; x++) {
@@ -16,12 +16,13 @@ static bool FindCell(const TeamSession& session, CellType type, int& x, int& y) 
 	return false;
 }
 
-// Puts a hero on a cell (used to prepare a situation for a test)
+// Place hero
 static void PlaceHero(TeamSession& session, Hero hero, int x, int y) {
 	session.heroes[hero].x = x;
 	session.heroes[hero].y = y;
 }
 
+// Starting
 static void TestStart() {
 	TeamSession session;
 
@@ -42,7 +43,7 @@ static void TestStart() {
 	Check(session.cells == nullptr && session.maze.cells == nullptr, "EndTeamSession frees both arrays");
 }
 
-// Lava is safe only for the fire hero, water only for the water hero
+// Lava, water
 static void TestPools() {
 	TeamSession session;
 	StartTeamSession(session, 30, 21u);
@@ -71,6 +72,7 @@ static void TestPools() {
 	EndTeamSession(session);
 }
 
+// Gates
 static void TestGates() {
 	TeamSession session;
 	StartTeamSession(session, 30, 21u);
@@ -102,6 +104,7 @@ static void TestGates() {
 	EndTeamSession(session);
 }
 
+// Gems
 static void TestGems() {
 	TeamSession session;
 	StartTeamSession(session, 30, 21u);
@@ -132,7 +135,7 @@ static void TestGems() {
 	EndTeamSession(session);
 }
 
-// Regression test for the "impossible spikes" bug: two spikes next to each other on the way can't be passed
+// Spikes
 static void TestSpikes() {
 	bool hasNoSpikePairs = true;
 
@@ -169,7 +172,7 @@ static void TestSpikes() {
 	EndTeamSession(session);
 }
 
-// LAN: the hero of the other computer is not hurt by this computer's timing
+// Remote hero
 static void TestRemoteHero() {
 	TeamSession session;
 	StartTeamSession(session, 30, 21u);
@@ -183,7 +186,6 @@ static void TestRemoteHero() {
 		return;
 	}
 
-	// A time when these spikes are up
 	session.elapsedSeconds = AreSpikesUp(session, spikeX, spikeY) ? 0.0f : 1.0f;
 
 	SetRemoteHero(session, HERO_WATER);
@@ -201,6 +203,7 @@ static void TestRemoteHero() {
 	EndTeamSession(session);
 }
 
+// Escaping
 static void TestEscape() {
 	TeamSession session;
 	StartTeamSession(session, 20, 5u);
@@ -219,6 +222,7 @@ static void TestEscape() {
 	EndTeamSession(session);
 }
 
+// Team tests
 void RunTeamTests() {
 	BeginTestGroup("Team play (BLL/TeamGame)");
 

@@ -1,6 +1,6 @@
 #pragma once
 
-// Screens of the game
+// Game screens
 enum Screen {
 	MAINMENU,
 	SIZESELECT,
@@ -17,7 +17,7 @@ enum Screen {
 	EXITGAME
 };
 
-// Game modes, chosen in the main menu
+// Game modes
 enum GameMode {
 	SINGLE_PLAYER,
 	RACE,

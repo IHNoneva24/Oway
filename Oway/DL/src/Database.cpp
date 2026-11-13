@@ -16,7 +16,7 @@ static const char* CREATE_TABLES_SQL =
 	");"
 	"CREATE INDEX IF NOT EXISTS IX_Results_MazeSize_Time ON Results (MazeSize, TimeSeconds, Moves);";
 
-// Copies a text column into a fixed size buffer, always ending with '\0'
+// Copy text
 static void CopyTextColumn(sqlite3_stmt* statement, int column, char* destination, size_t destinationSize) {
 	const unsigned char* text = sqlite3_column_text(statement, column);
 
@@ -25,25 +25,31 @@ static void CopyTextColumn(sqlite3_stmt* statement, int column, char* destinatio
 		return;
 	}
 
+	// safe copy
 	strncpy_s(destination, destinationSize, reinterpret_cast<const char*>(text), _TRUNCATE);
 }
 
+// Open database
 bool OpenDatabase(const char* filePath) {
 	CloseDatabase();
 
-	// Creates the folder of the database file if it doesn't exist yet
+	// no exceptions
 	std::error_code error;
+	// folder of file
 	std::filesystem::path folder = std::filesystem::path(filePath).parent_path();
 
 	if (!folder.empty()) {
+		// create folder
 		std::filesystem::create_directories(folder, error);
 	}
 
+	// open file
 	if (sqlite3_open(filePath, &database) != SQLITE_OK) {
 		CloseDatabase();
 		return false;
 	}
 
+	// create tables
 	if (sqlite3_exec(database, CREATE_TABLES_SQL, nullptr, nullptr, nullptr) != SQLITE_OK) {
 		CloseDatabase();
 		return false;
@@ -52,6 +58,7 @@ bool OpenDatabase(const char* filePath) {
 	return true;
 }
 
+// Close database
 void CloseDatabase() {
 	if (database != nullptr) {
 		sqlite3_close(database);
@@ -59,34 +66,40 @@ void CloseDatabase() {
 	}
 }
 
+// Database open?
 bool IsDatabaseOpen() {
 	return database != nullptr;
 }
 
+// Insert result
 bool InsertResult(const ResultRecord& result) {
 	if (database == nullptr) {
 		return false;
 	}
 
-	// Prepared statements with parameters (?) protect against SQL injection
 	const char* sql = "INSERT INTO Results (PlayerName, MazeSize, TimeSeconds, Moves) VALUES (?, ?, ?, ?);";
 	sqlite3_stmt* statement = nullptr;
 
+	// prepare query
 	if (sqlite3_prepare_v2(database, sql, -1, &statement, nullptr) != SQLITE_OK) {
 		return false;
 	}
 
+	// fill parameters
 	sqlite3_bind_text(statement, 1, result.playerName, -1, SQLITE_TRANSIENT);
 	sqlite3_bind_int(statement, 2, result.mazeSize);
 	sqlite3_bind_double(statement, 3, result.timeSeconds);
 	sqlite3_bind_int(statement, 4, result.moves);
 
+	// run query
 	bool isSaved = sqlite3_step(statement) == SQLITE_DONE;
+	// free query
 	sqlite3_finalize(statement);
 
 	return isSaved;
 }
 
+// Top results
 int SelectTopResults(int mazeSize, ResultRecord* results, int maxCount) {
 	if (database == nullptr || results == nullptr || maxCount <= 0) {
 		return -1;
@@ -97,15 +110,18 @@ int SelectTopResults(int mazeSize, ResultRecord* results, int maxCount) {
 		"WHERE MazeSize = ? ORDER BY TimeSeconds ASC, Moves ASC LIMIT ?;";
 	sqlite3_stmt* statement = nullptr;
 
+	// prepare query
 	if (sqlite3_prepare_v2(database, sql, -1, &statement, nullptr) != SQLITE_OK) {
 		return -1;
 	}
 
+	// fill parameters
 	sqlite3_bind_int(statement, 1, mazeSize);
 	sqlite3_bind_int(statement, 2, maxCount);
 
 	int count = 0;
 
+	// run query
 	while (count < maxCount && sqlite3_step(statement) == SQLITE_ROW) {
 		ResultRecord& record = results[count];
 
@@ -118,10 +134,12 @@ int SelectTopResults(int mazeSize, ResultRecord* results, int maxCount) {
 		count++;
 	}
 
+	// free query
 	sqlite3_finalize(statement);
 	return count;
 }
 
+// Result rank
 int SelectRankForTime(int mazeSize, float timeSeconds) {
 	if (database == nullptr) {
 		return -1;
@@ -130,19 +148,24 @@ int SelectRankForTime(int mazeSize, float timeSeconds) {
 	const char* sql = "SELECT COUNT(*) FROM Results WHERE MazeSize = ? AND TimeSeconds < ?;";
 	sqlite3_stmt* statement = nullptr;
 
+	// prepare query
 	if (sqlite3_prepare_v2(database, sql, -1, &statement, nullptr) != SQLITE_OK) {
 		return -1;
 	}
 
+	// fill parameters
 	sqlite3_bind_int(statement, 1, mazeSize);
 	sqlite3_bind_double(statement, 2, timeSeconds);
 
 	int rank = -1;
 
+	// run query
 	if (sqlite3_step(statement) == SQLITE_ROW) {
+		// rank from count
 		rank = sqlite3_column_int(statement, 0) + 1;
 	}
 
+	// free query
 	sqlite3_finalize(statement);
 	return rank;
 }

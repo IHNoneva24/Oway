@@ -1,11 +1,10 @@
 #pragma once
 
-// Maze logic
-
+// constant
 constexpr int MIN_MAZE_SIZE = 10;
 constexpr int MAX_MAZE_SIZE = 50;
 
-// Every cell stores its walls as bit flags
+// Wall bits
 enum WallFlag : unsigned char {
 	WALL_NORTH = 1,
 	WALL_EAST = 2,
@@ -14,6 +13,7 @@ enum WallFlag : unsigned char {
 	WALL_ALL = WALL_NORTH | WALL_EAST | WALL_SOUTH | WALL_WEST
 };
 
+// Directions
 enum Direction {
 	DIRECTION_UP,
 	DIRECTION_RIGHT,
@@ -21,32 +21,35 @@ enum Direction {
 	DIRECTION_LEFT
 };
 
+// Maze data
 struct Maze {
 	int width = 0;
 	int height = 0;
-	unsigned char* cells = nullptr; // dynamic array of width * height wall flags
+	unsigned char* cells = nullptr;
 };
 
-// Checks if a size is inside the allowed range (10 - 50)
+// Size check
 bool IsValidMazeSize(int size);
 
-// Converts text typed by the user to a maze size.
-// Returns false if the text is empty, has non-digit characters or is out of range
+// Read size
 bool TryParseMazeSize(const char* text, int& size);
 
-// Allocates the cells with all walls closed. Returns false on invalid size
+// Create maze
 bool CreateMaze(Maze& maze, int width, int height);
 
-// Frees the dynamic memory of the maze
+// Free maze
 void DestroyMaze(Maze& maze);
 
-// Carves a perfect maze (one path between any two cells). Same seed = same maze
+// Generate maze
 void GenerateMaze(Maze& maze, unsigned int seed);
 
+// Inside check
 bool IsInsideMaze(const Maze& maze, int x, int y);
 
+// Wall check
 bool HasWall(const Maze& maze, int x, int y, Direction direction);
 
-// The exit is always the bottom right cell
+// Exit column
 int GetExitX(const Maze& maze);
+// Exit row
 int GetExitY(const Maze& maze);

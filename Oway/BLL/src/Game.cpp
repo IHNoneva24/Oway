@@ -2,6 +2,7 @@
 
 static GameSession currentSession;
 
+// Start game
 bool StartGameSession(GameSession& session, int mazeSize, unsigned int seed) {
 	if (!CreateMaze(session.maze, mazeSize, mazeSize)) {
 		return false;
@@ -17,20 +18,24 @@ bool StartGameSession(GameSession& session, int mazeSize, unsigned int seed) {
 	return true;
 }
 
+// Restart game
 bool RestartGameSession(GameSession& session, unsigned int seed) {
 	return StartGameSession(session, session.maze.width, seed);
 }
 
+// End game
 void EndGameSession(GameSession& session) {
 	DestroyMaze(session.maze);
 	session.isFinished = false;
 	session.isPaused = false;
 }
 
+// Pause game
 void SetPaused(GameSession& session, bool isPaused) {
 	session.isPaused = isPaused && !session.isFinished;
 }
 
+// Move player
 bool TryMovePlayer(GameSession& session, Direction direction) {
 	if (session.isFinished || session.isPaused) {
 		return false;
@@ -55,16 +60,19 @@ bool TryMovePlayer(GameSession& session, Direction direction) {
 	return true;
 }
 
+// Exit check
 bool HasReachedExit(const GameSession& session) {
 	return session.player.x == GetExitX(session.maze) && session.player.y == GetExitY(session.maze);
 }
 
+// Update timer
 void UpdateGameTime(GameSession& session, float deltaSeconds) {
 	if (!session.isFinished && !session.isPaused) {
 		session.elapsedSeconds += deltaSeconds;
 	}
 }
 
+// Current game
 GameSession& GetCurrentSession() {
 	return currentSession;
 }

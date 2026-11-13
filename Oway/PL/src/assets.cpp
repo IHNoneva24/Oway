@@ -2,21 +2,24 @@
 
 static GameAssets assets;
 
-static const float ANIMATION_SPEED = 8.0f; // frames per second
+static const float ANIMATION_SPEED = 8.0f;
 
-// Assets are loaded from the folder of the executable, so the game works from any working directory
+// Load texture
 static Texture2D LoadGameTexture(const char* relativePath) {
+	// exe folder
 	return LoadTexture(TextFormat("%sassets/%s", GetApplicationDirectory(), relativePath));
 }
 
-// The character sheet marks every sprite with small blue corners. They are removed when the sheet is loaded,
-// only in the corners, because the same blue is used inside some sprites
+// Load characters
 static Texture2D LoadCharacterSheet(const char* relativePath) {
 	const Color MARKER = { 98, 171, 212, 255 };
 	const int CORNER = 3;
 
+	// exe folder
 	Image image = LoadImage(TextFormat("%sassets/%s", GetApplicationDirectory(), relativePath));
+	// RGBA pixels
 	ImageFormat(&image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+	// pixel array
 	Color* pixels = static_cast<Color*>(image.data);
 
 	for (int y = 0; y < image.height; y++) {
@@ -37,6 +40,7 @@ static Texture2D LoadCharacterSheet(const char* relativePath) {
 	return texture;
 }
 
+// Load textures
 void LoadAssets() {
 	assets.tileset = LoadGameTexture("tileset/Dungeon_Tileset.png");
 	assets.characters = LoadCharacterSheet("tileset/Dungeon_Character.png");
@@ -50,6 +54,7 @@ void LoadAssets() {
 	}
 }
 
+// Free textures
 void UnloadAssets() {
 	UnloadTexture(assets.tileset);
 	UnloadTexture(assets.characters);
@@ -63,17 +68,21 @@ void UnloadAssets() {
 	}
 }
 
+// All textures
 const GameAssets& GetAssets() {
 	return assets;
 }
 
+// Draw tile
 void DrawTile(Texture2D sheet, int column, int row, Rectangle destination, bool flipX) {
 	float width = static_cast<float>(TILE_SIZE);
+	// mirror sprite
 	Rectangle source = { column * width, row * width, flipX ? -width : width, width };
 
 	DrawTexturePro(sheet, source, destination, { 0, 0 }, 0.0f, WHITE);
 }
 
+// Animation frame
 int GetAnimationFrame() {
 	return static_cast<int>(GetTime() * ANIMATION_SPEED) % ANIMATION_FRAMES;
 }

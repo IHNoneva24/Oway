@@ -3,7 +3,7 @@
 #include "testHelpers.h"
 #include "Maze.h"
 
-// Size limits: only 10 - 50 is allowed
+// Size limits
 static void TestSizeValidation() {
 	Check(!IsValidMazeSize(9), "size 9 is rejected (below the minimum)");
 	Check(IsValidMazeSize(10), "size 10 is accepted (minimum)");
@@ -12,7 +12,7 @@ static void TestSizeValidation() {
 	Check(!IsValidMazeSize(-10), "negative size is rejected");
 }
 
-// Text typed by the user in the size box
+// Size input
 static void TestSizeParsing() {
 	int size = 0;
 
@@ -31,6 +31,7 @@ static void TestSizeParsing() {
 	CheckEqual(33, size, "the size is not changed when the text is wrong");
 }
 
+// Maze memory
 static void TestCreateAndDestroy() {
 	Maze maze;
 
@@ -57,7 +58,7 @@ static void TestCreateAndDestroy() {
 	Check(maze.cells == nullptr, "DestroyMaze can be called twice safely");
 }
 
-// A perfect maze: every cell can be reached and there is exactly one way between any two cells
+// Perfect maze
 static void TestPerfectMaze() {
 	bool allReachable = true;
 	bool noLoops = true;
@@ -70,7 +71,6 @@ static void TestPerfectMaze() {
 		int cellCount = size * size;
 		allReachable = allReachable && CountReachableCells(maze) == cellCount;
 
-		// A connected maze without loops has exactly (cells - 1) openings
 		noLoops = noLoops && CountPassages(maze) == cellCount - 1;
 
 		DestroyMaze(maze);
@@ -80,6 +80,7 @@ static void TestPerfectMaze() {
 	Check(noLoops, "the maze has no loops (cells - 1 openings), for every size 10 - 50");
 }
 
+// Walls
 static void TestWalls() {
 	Maze maze;
 	CreateMaze(maze, 15, 15);
@@ -94,7 +95,6 @@ static void TestWalls() {
 			&& HasWall(maze, 0, i, DIRECTION_LEFT) && HasWall(maze, 14, i, DIRECTION_RIGHT);
 	}
 
-	// Every wall must look the same from both sides
 	for (int y = 0; y < 15; y++) {
 		for (int x = 0; x < 14; x++) {
 			wallsMatch = wallsMatch && HasWall(maze, x, y, DIRECTION_RIGHT) == HasWall(maze, x + 1, y, DIRECTION_LEFT);
@@ -111,7 +111,7 @@ static void TestWalls() {
 	DestroyMaze(maze);
 }
 
-// The same seed must give the same maze (needed for LAN games), different seeds different mazes
+// Seeds
 static void TestSeeds() {
 	Maze first;
 	Maze second;
@@ -139,6 +139,7 @@ static void TestSeeds() {
 	DestroyMaze(third);
 }
 
+// Maze tests
 void RunMazeTests() {
 	BeginTestGroup("Maze (BLL/Maze)");
 

@@ -2,7 +2,7 @@
 #include "testFramework.h"
 #include "Game.h"
 
-// Walks the maze with the right hand on the wall. In a perfect maze this always finds the exit
+// Wall follower
 static bool SolveWithWallFollower(GameSession& session, int maxSteps) {
 	Direction heading = DIRECTION_RIGHT;
 
@@ -23,6 +23,7 @@ static bool SolveWithWallFollower(GameSession& session, int maxSteps) {
 	return session.isFinished;
 }
 
+// Starting
 static void TestStart() {
 	GameSession session;
 
@@ -36,16 +37,15 @@ static void TestStart() {
 	Check(session.maze.cells == nullptr, "EndGameSession frees the maze");
 }
 
+// Movement
 static void TestMovement() {
 	GameSession session;
 	StartGameSession(session, 15, 3u);
 
-	// The start is in the corner, so up and left are always walls
 	Check(!TryMovePlayer(session, DIRECTION_UP), "the player can't go up through the outer wall");
 	Check(!TryMovePlayer(session, DIRECTION_LEFT), "the player can't go left through the outer wall");
 	CheckEqual(0, session.player.moves, "a blocked move is not counted");
 
-	// From 0,0 at least one of right / down is open
 	Direction open = HasWall(session.maze, 0, 0, DIRECTION_RIGHT) ? DIRECTION_DOWN : DIRECTION_RIGHT;
 	Check(TryMovePlayer(session, open), "the player can walk through an opening");
 	CheckEqual(1, session.player.moves, "a move is counted");
@@ -59,6 +59,7 @@ static void TestMovement() {
 	EndGameSession(session);
 }
 
+// Pause, timer
 static void TestPauseAndTimer() {
 	GameSession session;
 	StartGameSession(session, 10, 5u);
@@ -79,6 +80,7 @@ static void TestPauseAndTimer() {
 	EndGameSession(session);
 }
 
+// Winning
 static void TestWinning() {
 	GameSession session;
 	StartGameSession(session, 20, 11u);
@@ -102,6 +104,7 @@ static void TestWinning() {
 	EndGameSession(session);
 }
 
+// Game tests
 void RunGameTests() {
 	BeginTestGroup("Single player game (BLL/Game)");
 

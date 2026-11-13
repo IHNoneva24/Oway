@@ -1,6 +1,7 @@
 #include "screens.h"
 #include "ui.h"
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
 
@@ -25,8 +26,10 @@ static const char* HELP_LINES[] = {
 	"F11  -  fullscreen / window"
 };
 
+// array length
 static const int HELP_LINE_COUNT = sizeof(HELP_LINES) / sizeof(HELP_LINES[0]);
 
+// Help screen
 void DrawHelp(Screen& currentScreen) {
 	DrawDungeonBackground();
 
@@ -39,7 +42,6 @@ void DrawHelp(Screen& currentScreen) {
 
 	y += Scaled(110);
 
-	// Empty lines only separate the sections, so they take half the height and all lines fit above the button
 	for (int i = 0; i < HELP_LINE_COUNT; i++) {
 		DrawCenteredText(HELP_LINES[i], y, Scaled(28), RAYWHITE);
 		y += HELP_LINES[i][0] == '\0' ? Scaled(19) : Scaled(38);

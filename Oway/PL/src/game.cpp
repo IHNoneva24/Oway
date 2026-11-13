@@ -5,10 +5,11 @@
 #include "Game.h"
 #include <ctime>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
 
-// Reads the arrow keys and moves the player
+// Movement keys
 static void HandleMovement(GameSession& session) {
 	if (IsKeyPressed(KEY_UP) || IsKeyPressedRepeat(KEY_UP) || IsKeyPressed(KEY_W) || IsKeyPressedRepeat(KEY_W))       TryMovePlayer(session, DIRECTION_UP);
 	if (IsKeyPressed(KEY_RIGHT) || IsKeyPressedRepeat(KEY_RIGHT) || IsKeyPressed(KEY_D) || IsKeyPressedRepeat(KEY_D)) TryMovePlayer(session, DIRECTION_RIGHT);
@@ -16,17 +17,18 @@ static void HandleMovement(GameSession& session) {
 	if (IsKeyPressed(KEY_LEFT) || IsKeyPressedRepeat(KEY_LEFT) || IsKeyPressed(KEY_A) || IsKeyPressedRepeat(KEY_A))   TryMovePlayer(session, DIRECTION_LEFT);
 }
 
-// Draws the walls, the exit and the player, top-down view
+// Draw maze
 static void DrawMaze(const GameSession& session) {
 	DrawMazeWalls(session.maze);
 	DrawExit(session.maze, true);
 
-	// The knight sprite switches between two frames for an idle animation
+	// idle animation
 	int frameRow = static_cast<int>(GetTime() * 2) % 2 == 0 ? 0 : 2;
 	Rectangle playerTile = GetCellRect(session.maze, session.player.x, session.player.y);
 	DrawTile(GetAssets().characters, 0, frameRow, playerTile, session.player.facing == DIRECTION_LEFT);
 }
 
+// Draw HUD
 static void DrawHud(const GameSession& session) {
 	float height = Scaled(HUD_HEIGHT);
 	int fontSize = static_cast<int>(Scaled(30));
@@ -42,6 +44,7 @@ static void DrawHud(const GameSession& session) {
 	DrawText(hint, screenW - MeasureText(hint, fontSize) - static_cast<int>(Scaled(30)), textY, fontSize, COLOR_TEXT_DIM);
 }
 
+// Pause menu
 static void DrawPauseMenu(GameSession& session, Screen& currentScreen) {
 	DrawRectangle(0, 0, screenW, screenH, { 0, 0, 0, 170 });
 
@@ -64,6 +67,7 @@ static void DrawPauseMenu(GameSession& session, Screen& currentScreen) {
 	}
 }
 
+// Game screen
 void DrawGame(Screen& currentScreen) {
 	GameSession& session = GetCurrentSession();
 

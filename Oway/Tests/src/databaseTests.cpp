@@ -5,13 +5,15 @@
 #include <string>
 #include <cstring>
 
-// The tests use their own database in the temp folder, so the real leaderboard is never changed
+// Test database
 static std::string GetTestDatabasePath() {
 	return (std::filesystem::temp_directory_path() / "oway_tests" / "database_test.db").string();
 }
 
+// Test record
 static ResultRecord MakeRecord(const char* name, int mazeSize, float timeSeconds, int moves) {
 	ResultRecord record;
+	// safe copy
 	strncpy_s(record.playerName, sizeof(record.playerName), name, _TRUNCATE);
 	record.mazeSize = mazeSize;
 	record.timeSeconds = timeSeconds;
@@ -19,6 +21,7 @@ static ResultRecord MakeRecord(const char* name, int mazeSize, float timeSeconds
 	return record;
 }
 
+// Closed database
 static void TestClosedDatabase() {
 	CloseDatabase();
 	ResultRecord results[3];
@@ -29,6 +32,7 @@ static void TestClosedDatabase() {
 	CheckEqual(-1, SelectRankForTime(10, 5.0f), "ranking with a closed database returns an error (-1)");
 }
 
+// Opening
 static void TestOpen() {
 	std::filesystem::remove_all(std::filesystem::temp_directory_path() / "oway_tests");
 
@@ -37,6 +41,7 @@ static void TestOpen() {
 	Check(std::filesystem::exists(GetTestDatabasePath()), "the database file exists on the disk");
 }
 
+// Save, read
 static void TestInsertAndSelect() {
 	Check(InsertResult(MakeRecord("Slow", 15, 40.0f, 120)), "a result is saved");
 	Check(InsertResult(MakeRecord("Fast", 15, 12.5f, 60)), "a second result is saved");
@@ -60,20 +65,20 @@ static void TestInsertAndSelect() {
 	CheckEqual(1, SelectRankForTime(33, 99.0f), "the first result of a size is rank 1");
 }
 
-// The table rules (CHECK constraints) stop wrong data even if the BLL has a bug
+// Table rules
 static void TestConstraints() {
 	Check(!InsertResult(MakeRecord("Too small", 5, 10.0f, 10)), "the database refuses a maze size under 10");
 	Check(!InsertResult(MakeRecord("Too big", 51, 10.0f, 10)), "the database refuses a maze size over 50");
 	Check(!InsertResult(MakeRecord("Negative", 10, -1.0f, 10)), "the database refuses a negative time");
 	Check(!InsertResult(MakeRecord("Negative", 10, 1.0f, -5)), "the database refuses negative moves");
 
-	// SQL injection attempt: the name is only data, the table must still exist
 	Check(InsertResult(MakeRecord("x'); DROP TABLE Results;--", 10, 3.0f, 3)), "a name with SQL code is saved as normal text");
 
 	ResultRecord results[10];
 	Check(SelectTopResults(15, results, 10) == 3, "the table still exists after the SQL injection attempt");
 }
 
+// Database tests
 void RunDatabaseTests() {
 	BeginTestGroup("Database (DL/Database)");
 

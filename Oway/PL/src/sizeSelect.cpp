@@ -5,8 +5,10 @@
 #include "RaceGame.h"
 #include <ctime>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
+// from screen.cpp
 extern GameMode gameMode;
 
 static const int MAX_INPUT_LENGTH = 2;
@@ -14,7 +16,7 @@ static const int MAX_INPUT_LENGTH = 2;
 static char sizeInput[MAX_INPUT_LENGTH + 1] = "10";
 static bool showError = false;
 
-// Changes the size with the - and + buttons, always staying in range
+// Change size
 static void ChangeSize(int delta) {
 	int size = MIN_MAZE_SIZE;
 
@@ -29,9 +31,8 @@ static void ChangeSize(int delta) {
 	showError = false;
 }
 
-// Starts a single player, race or team game, depending on the mode chosen in the main menu
+// Start game
 static bool StartSelectedGame(int size) {
-	// A new random maze every time
 	unsigned int seed = static_cast<unsigned int>(time(nullptr));
 
 	if (gameMode == TEAM_PLAY) {
@@ -45,6 +46,7 @@ static bool StartSelectedGame(int size) {
 	return StartGameSession(GetCurrentSession(), size, seed);
 }
 
+// Screen title
 static const char* GetSizeSelectTitle() {
 	switch (gameMode) {
 	case RACE:      return "Race - choose maze size";
@@ -53,7 +55,7 @@ static const char* GetSizeSelectTitle() {
 	}
 }
 
-// The game screen of the chosen mode
+// Game screen
 static Screen GetGameScreen() {
 	switch (gameMode) {
 	case RACE:      return RACEGAME;
@@ -62,6 +64,7 @@ static Screen GetGameScreen() {
 	}
 }
 
+// Size select
 void DrawSizeSelect(Screen& currentScreen) {
 	DrawDungeonBackground();
 

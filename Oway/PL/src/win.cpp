@@ -4,28 +4,30 @@
 #include "Leaderboard.h"
 #include <ctime>
 
+// from screen.cpp
 extern int screenW;
 extern int screenH;
 
-// The name stays filled in between games
 static char playerName[MAX_PLAYER_NAME_LENGTH + 1] = "";
 static bool isSaved = false;
 static int savedRank = 0;
 static SaveResultStatus lastStatus = SAVE_OK;
 static bool hasTriedToSave = false;
 
-// Clears the save state so the next win can be saved again
+// Reset saving
 static void LeaveWinScreen() {
 	isSaved = false;
 	hasTriedToSave = false;
 }
 
+// Save result
 static void TrySaveResult(const GameSession& session) {
 	hasTriedToSave = true;
 	lastStatus = SaveGameResult(session, playerName, savedRank);
 	isSaved = lastStatus == SAVE_OK;
 }
 
+// Save message
 static const char* GetSaveMessage() {
 	switch (lastStatus) {
 	case SAVE_OK:             return "Saved!";
@@ -37,7 +39,7 @@ static const char* GetSaveMessage() {
 	return "";
 }
 
-// Name box and save button, or the result after saving
+// Name input
 static void DrawSaveSection(const GameSession& session, float y) {
 	if (!IsLeaderboardAvailable()) {
 		DrawCenteredText("Leaderboard unavailable (database could not be opened)", y + Scaled(30), Scaled(26), COLOR_ERROR);
@@ -72,6 +74,7 @@ static void DrawSaveSection(const GameSession& session, float y) {
 	}
 }
 
+// Win screen
 void DrawWin(Screen& currentScreen) {
 	GameSession& session = GetCurrentSession();
 

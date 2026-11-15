@@ -184,3 +184,9 @@ setup-firewall.bat remove
   If you like the app, you can give a 🌟 to our repository!
 </h2>
 
+<br>
+
+
+<div align="center">
+  <img src="Documents/readme/arcade.svg" width="100%" alt="Select game mode: Single player, Race and Team play.">
+</div>

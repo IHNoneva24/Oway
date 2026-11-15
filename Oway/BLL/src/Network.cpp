@@ -63,7 +63,7 @@ static void WriteMessage(const NetworkMessage& message, char* bytes) {
 	// network byte order
 	u_long value = htonl(static_cast<u_long>(message.value));
 	u_long seed = htonl(message.seed);
-
+	
 	bytes[0] = static_cast<char>(message.type);
 	bytes[1] = static_cast<char>(message.player);
 	// copy bytes

@@ -10,8 +10,7 @@ extern int screenW;
 extern int screenH;
 
 static const int EMBER_COUNT = 70;
-static const int LIGHT_COUNT = 4;
-static const int TRAIL_LENGTH = 16;
+static const int WALKER_COUNT = 3;
 static const float RIPPLE_TIME = 0.9f;
 
 // Floating spark
@@ -22,23 +21,24 @@ struct Ember {
 	float phase;
 };
 
-// Light walking the maze
-struct MazeLight {
+// Character walking the maze
+struct MazeWalker {
 	int x;
 	int y;
 	int fromX;
 	int fromY;
 	float progress;
 	float speed;
-	Vector2 trail[TRAIL_LENGTH];
-	float trailTimer;
+	bool isFacingLeft;
 };
 
-static const Color LIGHT_COLORS[LIGHT_COUNT] = {
+// columns in the character sheet
+static const int WALKER_SPRITES[WALKER_COUNT] = { 0, 1, 3 };
+
+static const Color WALKER_COLORS[WALKER_COUNT] = {
 	{ 255, 190, 90, 255 },
 	{ 255, 110, 50, 255 },
-	{ 80, 170, 255, 255 },
-	{ 200, 150, 255, 255 }
+	{ 80, 170, 255, 255 }
 };
 
 static RenderTexture2D background;
@@ -50,7 +50,7 @@ static Maze maze;
 static Rectangle mazeArea;
 
 static Ember embers[EMBER_COUNT];
-static MazeLight lights[LIGHT_COUNT];
+static MazeWalker walkers[WALKER_COUNT];
 
 static Vector2 offset = { 0, 0 };
 static Vector2 torch = { 0, 0 };
@@ -68,43 +68,48 @@ static Vector2 GetCellCenter(int x, int y) {
 	return { cell.x + cell.width / 2 - padding, cell.y + cell.height / 2 - padding };
 }
 
-// Light position
-static Vector2 GetLightPosition(const MazeLight& light) {
-	Vector2 from = GetCellCenter(light.fromX, light.fromY);
-	Vector2 to = GetCellCenter(light.x, light.y);
-	return { from.x + (to.x - from.x) * light.progress, from.y + (to.y - from.y) * light.progress };
+// Walker position
+static Vector2 GetWalkerPosition(const MazeWalker& walker) {
+	Vector2 from = GetCellCenter(walker.fromX, walker.fromY);
+	Vector2 to = GetCellCenter(walker.x, walker.y);
+	return { from.x + (to.x - from.x) * walker.progress, from.y + (to.y - from.y) * walker.progress };
 }
 
 // Next cell
-static void MoveLight(MazeLight& light) {
+static void MoveWalker(MazeWalker& walker) {
 	const int dx[4] = { 0, 1, 0, -1 };
 	const int dy[4] = { -1, 0, 1, 0 };
 	int options[4];
 	int optionCount = 0;
 
 	for (int dir = 0; dir < 4; dir++) {
-		bool isBack = light.x + dx[dir] == light.fromX && light.y + dy[dir] == light.fromY;
+		bool isBack = walker.x + dx[dir] == walker.fromX && walker.y + dy[dir] == walker.fromY;
 
-		if (!HasWall(maze, light.x, light.y, static_cast<Direction>(dir)) && !isBack) {
+		if (!HasWall(maze, walker.x, walker.y, static_cast<Direction>(dir)) && !isBack) {
 			options[optionCount++] = dir;
 		}
 	}
 
-	int nextX = light.fromX;
-	int nextY = light.fromY;
+	int nextX = walker.fromX;
+	int nextY = walker.fromY;
 
 	// dead end - go back
 	if (optionCount > 0) {
 		int dir = options[GetRandomValue(0, optionCount - 1)];
-		nextX = light.x + dx[dir];
-		nextY = light.y + dy[dir];
+		nextX = walker.x + dx[dir];
+		nextY = walker.y + dy[dir];
 	}
 
-	light.fromX = light.x;
-	light.fromY = light.y;
-	light.x = nextX;
-	light.y = nextY;
-	light.progress = 0.0f;
+	// look where you walk
+	if (nextX != walker.x) {
+		walker.isFacingLeft = nextX < walker.x;
+	}
+
+	walker.fromX = walker.x;
+	walker.fromY = walker.y;
+	walker.x = nextX;
+	walker.y = nextY;
+	walker.progress = 0.0f;
 }
 
 // New ember
@@ -157,18 +162,14 @@ static void CreateBackground() {
 	backgroundW = screenW;
 	backgroundH = screenH;
 
-	for (int i = 0; i < LIGHT_COUNT; i++) {
-		lights[i].x = GetRandomValue(0, maze.width - 1);
-		lights[i].y = GetRandomValue(0, maze.height - 1);
-		lights[i].fromX = lights[i].x;
-		lights[i].fromY = lights[i].y;
-		lights[i].progress = 1.0f;
-		lights[i].speed = RandomFloat(2.2f, 3.6f);
-		lights[i].trailTimer = 0.0f;
-
-		for (int t = 0; t < TRAIL_LENGTH; t++) {
-			lights[i].trail[t] = GetCellCenter(lights[i].x, lights[i].y);
-		}
+	for (int i = 0; i < WALKER_COUNT; i++) {
+		walkers[i].x = GetRandomValue(0, maze.width - 1);
+		walkers[i].y = GetRandomValue(0, maze.height - 1);
+		walkers[i].fromX = walkers[i].x;
+		walkers[i].fromY = walkers[i].y;
+		walkers[i].progress = 1.0f;
+		walkers[i].speed = RandomFloat(1.8f, 2.8f);
+		walkers[i].isFacingLeft = false;
 	}
 
 	for (int i = 0; i < EMBER_COUNT; i++) {
@@ -200,24 +201,11 @@ static void UpdateBackground(float dt) {
 		rippleAge += dt;
 	}
 
-	for (int i = 0; i < LIGHT_COUNT; i++) {
-		MazeLight& light = lights[i];
-		light.progress += dt * light.speed;
+	for (int i = 0; i < WALKER_COUNT; i++) {
+		walkers[i].progress += dt * walkers[i].speed;
 
-		if (light.progress >= 1.0f) {
-			MoveLight(light);
-		}
-
-		light.trailTimer -= dt;
-
-		if (light.trailTimer <= 0) {
-			light.trailTimer = 0.035f;
-
-			for (int t = TRAIL_LENGTH - 1; t > 0; t--) {
-				light.trail[t] = light.trail[t - 1];
-			}
-
-			light.trail[0] = GetLightPosition(light);
+		if (walkers[i].progress >= 1.0f) {
+			MoveWalker(walkers[i]);
 		}
 	}
 
@@ -239,6 +227,21 @@ static void DrawGlow(Vector2 center, float radius, Color color, float strength) 
 	DrawCircleGradient(static_cast<int>(center.x), static_cast<int>(center.y), radius, inner, { color.r, color.g, color.b, 0 });
 }
 
+// Characters in the maze
+static void DrawWalkers() {
+	float size = GetCellRectIn(maze, mazeArea, 0, 0).width;
+
+	// walk animation
+	int frameRow = static_cast<int>(GetTime() * 4) % 2 == 0 ? 0 : 2;
+
+	for (int i = 0; i < WALKER_COUNT; i++) {
+		Vector2 position = GetWalkerPosition(walkers[i]);
+		Rectangle tile = { position.x + offset.x - size / 2, position.y + offset.y - size / 2, size, size };
+
+		DrawTile(GetAssets().characters, WALKER_SPRITES[i], frameRow, tile, walkers[i].isFacingLeft);
+	}
+}
+
 // Lights and sparks
 static void DrawLights() {
 	float time = static_cast<float>(GetTime());
@@ -251,19 +254,12 @@ static void DrawLights() {
 	DrawGlow(torch, torchRadius, { 255, 150, 60, 255 }, 0.22f + 0.15f * flash);
 	DrawGlow(torch, torchRadius * 0.35f, { 255, 200, 120, 255 }, 0.12f);
 
-	for (int i = 0; i < LIGHT_COUNT; i++) {
-		for (int t = 1; t < TRAIL_LENGTH; t++) {
-			float fade = 1.0f - static_cast<float>(t) / TRAIL_LENGTH;
-			Vector2 point = { lights[i].trail[t].x + offset.x, lights[i].trail[t].y + offset.y };
-			DrawCircleV(point, Scaled(5) * fade, Fade(LIGHT_COLORS[i], 0.35f * fade));
-		}
-
-		Vector2 position = GetLightPosition(lights[i]);
+	// soft light around each character
+	for (int i = 0; i < WALKER_COUNT; i++) {
+		Vector2 position = GetWalkerPosition(walkers[i]);
 		position = { position.x + offset.x, position.y + offset.y };
 
-		DrawGlow(position, Scaled(110), LIGHT_COLORS[i], 0.2f);
-		DrawCircleV(position, Scaled(6), Fade(LIGHT_COLORS[i], 0.9f));
-		DrawCircleV(position, Scaled(3), WHITE);
+		DrawGlow(position, Scaled(110), WALKER_COLORS[i], 0.2f);
 	}
 
 	for (int i = 0; i < EMBER_COUNT; i++) {
@@ -311,6 +307,18 @@ void DrawMenuBackground() {
 	DrawTextureRec(background.texture, source, { offset.x - padding, offset.y - padding }, WHITE);
 
 	DrawRectangle(0, 0, screenW, screenH, { 10, 6, 12, 165 });
+	DrawWalkers();
 	DrawLights();
 	DrawVignette();
+}
+
+// Free menu background
+void UnloadMenuBackground() {
+	if (backgroundW != 0) {
+		UnloadRenderTexture(background);
+	}
+
+	DestroyMaze(maze);
+	backgroundW = 0;
+	backgroundH = 0;
 }

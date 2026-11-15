@@ -32,7 +32,27 @@ static const ModeCard CARDS[CARD_COUNT] = {
 
 static const Color COLOR_CARD_BORDER = { 92, 60, 52, 255 };
 
+static const float POPUP_TIME = 0.22f;
+
 static int selectedCard = -1;
+static int poppedCard = -1;
+static float popupAge = 0.0f;
+
+// Pop up size
+static float GetPopupScale() {
+	float t = popupAge / POPUP_TIME;
+	if (t >= 1.0f) return 1.0f;
+
+	// grows a little too big, then settles
+	float back = t - 1.0f;
+	return 1.0f + 2.70158f * back * back * back + 1.70158f * back * back;
+}
+
+// Card area scaled from its center
+static Rectangle GetPopupArea(Rectangle card, float scale) {
+	return { card.x + card.width * (1.0f - scale) / 2, card.y + card.height * (1.0f - scale) / 2,
+		card.width * scale, card.height * scale };
+}
 
 // Draw character
 static void DrawCharacter(int column, float centerX, float bottom, float size, bool flipX) {
@@ -141,6 +161,18 @@ static MultiplayerChoice DrawMultiplayerChoice(Rectangle card) {
 	return choice;
 }
 
+// Play button
+static bool DrawSinglePlayerChoice(Rectangle card) {
+	float width = card.width * 0.7f;
+	float height = card.width * 0.17f;
+	float x = card.x + card.width / 2 - width / 2;
+	float y = card.y + card.height * 0.4f;
+
+	DrawCenteredTextIn("READY?", card, y - height * 0.9f, card.width * 0.07f);
+
+	return DrawAccentButton({ x, y, width, height }, "PLAY", true);
+}
+
 // Mode select
 void DrawModeSelect(Screen& currentScreen) {
 	DrawDungeonBackground();
@@ -154,6 +186,16 @@ void DrawModeSelect(Screen& currentScreen) {
 
 	Vector2 mouse = GetMousePosition();
 	bool isOverCard = false;
+
+	// restart the pop up when another card is picked
+	if (poppedCard != selectedCard) {
+		poppedCard = selectedCard;
+		popupAge = 0.0f;
+	}
+
+	popupAge += GetFrameTime();
+	float popupScale = GetPopupScale();
+	float popupFade = popupAge < POPUP_TIME ? popupAge / POPUP_TIME : 1.0f;
 
 	for (int i = 0; i < CARD_COUNT; i++) {
 		Rectangle card = { startX + i * (cardWidth + gap), cardY, cardWidth, cardHeight };
@@ -186,38 +228,34 @@ void DrawModeSelect(Screen& currentScreen) {
 		DrawCardTitle(CARDS[i], card);
 
 		if (isSelected) {
-			DrawRectangleRec(card, { 0, 0, 0, 170 });
+			DrawRectangleRec(card, { 0, 0, 0, static_cast<unsigned char>(170 * popupFade) });
 			DrawRectangleLinesEx(card, Scaled(5), COLOR_ACCENT);
 
-			MultiplayerChoice choice = DrawMultiplayerChoice(card);
+			Rectangle popup = GetPopupArea(card, popupScale);
 
-			if (choice != CHOICE_NONE) {
-				gameMode = CARDS[i].mode;
-				isLanGame = choice == CHOICE_LAN;
-				selectedCard = -1;
-				currentScreen = isLanGame ? LOBBY : SIZESELECT;
-			}
-		}
-		else if (isHover) {
-			DrawRectangleLinesEx(card, Scaled(4), COLOR_ACCENT);
-
-			if (!CARDS[i].isMultiplayer) {
-				float buttonWidth = card.width * 0.45f;
-				DrawAccentButton({ card.x + card.width / 2 - buttonWidth / 2, card.y + card.height - card.width * 0.22f,
-					buttonWidth, card.width * 0.14f }, "PLAY", true);
-			}
-		}
-
-		if (isHover && !isSelected && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
 			if (CARDS[i].isMultiplayer) {
-				selectedCard = i;
+				MultiplayerChoice choice = DrawMultiplayerChoice(popup);
+
+				if (choice != CHOICE_NONE) {
+					gameMode = CARDS[i].mode;
+					isLanGame = choice == CHOICE_LAN;
+					selectedCard = -1;
+					currentScreen = isLanGame ? LOBBY : SIZESELECT;
+				}
 			}
-			else {
+			else if (DrawSinglePlayerChoice(popup)) {
 				gameMode = CARDS[i].mode;
 				isLanGame = false;
 				selectedCard = -1;
 				currentScreen = SIZESELECT;
 			}
+		}
+		else if (isHover) {
+			DrawRectangleLinesEx(card, Scaled(4), COLOR_ACCENT);
+		}
+
+		if (isHover && !isSelected && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+			selectedCard = i;
 		}
 	}
 
@@ -227,31 +265,36 @@ void DrawModeSelect(Screen& currentScreen) {
 
 	// keyboard shortcuts
 	for (int i = 0; i < CARD_COUNT; i++) {
-		if (!IsKeyPressed(KEY_ONE + i)) {
-			continue;
-		}
-
-		if (CARDS[i].isMultiplayer) {
+		if (IsKeyPressed(KEY_ONE + i)) {
 			selectedCard = i;
 		}
-		else {
-			gameMode = CARDS[i].mode;
+	}
+
+	const char* hint = "Press 1, 2 or 3 to pick a mode";
+
+	if (selectedCard != -1 && CARDS[selectedCard].isMultiplayer) {
+		hint = "Press L for local, C for co-op";
+
+		if (IsKeyPressed(KEY_L) || IsKeyPressed(KEY_C)) {
+			gameMode = CARDS[selectedCard].mode;
+			isLanGame = IsKeyPressed(KEY_C);
+			selectedCard = -1;
+			currentScreen = isLanGame ? LOBBY : SIZESELECT;
+		}
+	}
+	else if (selectedCard != -1) {
+		hint = "Press ENTER to play";
+
+		if (IsKeyPressed(KEY_ENTER)) {
+			gameMode = CARDS[selectedCard].mode;
 			isLanGame = false;
 			selectedCard = -1;
 			currentScreen = SIZESELECT;
 		}
 	}
 
-	if (selectedCard != -1 && (IsKeyPressed(KEY_L) || IsKeyPressed(KEY_C))) {
-		gameMode = CARDS[selectedCard].mode;
-		isLanGame = IsKeyPressed(KEY_C);
-		selectedCard = -1;
-		currentScreen = isLanGame ? LOBBY : SIZESELECT;
-	}
-
 	DrawCenteredText("SELECT A GAME MODE", cardY + cardHeight + Scaled(40), Scaled(34), COLOR_ACCENT);
-	DrawCenteredText(selectedCard == -1 ? "Press 1, 2 or 3 to pick a mode" : "Press L for local, C for co-op",
-		cardY + cardHeight + Scaled(86), Scaled(22), COLOR_TEXT_DIM);
+	DrawCenteredText(hint, cardY + cardHeight + Scaled(86), Scaled(22), COLOR_TEXT_DIM);
 
 	if (DrawButton({ Scaled(30), screenH - Scaled(100), Scaled(200), Scaled(70) }, "Back") || IsKeyPressed(KEY_ESCAPE)) {
 		if (selectedCard != -1) {

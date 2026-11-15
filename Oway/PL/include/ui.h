@@ -44,3 +44,6 @@ void DrawTextBox(Rectangle box, const char* text, float fontSize, bool hasError)
 
 // Draw torch
 void DrawTorch(float x, float y, float size);
+
+// Draw mouse cursor
+void DrawCursor();

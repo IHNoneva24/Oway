@@ -290,3 +290,14 @@ void DrawSizeSelect(Screen& currentScreen) {
 		currentScreen = MODESELECT;
 	}
 }
+
+// Free size select preview
+void UnloadSizeSelect() {
+	if (previewPixels != 0) {
+		UnloadRenderTexture(preview);
+	}
+
+	DestroyMaze(previewMaze);
+	previewSize = 0;
+	previewPixels = 0;
+}

@@ -25,3 +25,5 @@ void DrawRaceGame(Screen& currentScreen);
 void DrawRaceWin(Screen& currentScreen);
 // Lobby screen
 void DrawLobby(Screen& currentScreen);
+// Free size select preview
+void UnloadSizeSelect();

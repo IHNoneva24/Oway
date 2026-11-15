@@ -2,6 +2,7 @@
 #include "enum.h"
 #include "screen.h"
 #include "assets.h"
+#include "ui.h"
 #include "Leaderboard.h"
 #include "Network.h"
 
@@ -17,6 +18,9 @@ int main() {
     InitScreens(windowWidth, windowHeight);
     SetTargetFPS(60);
     SetExitKey(0);
+
+    // custom cursor is drawn instead
+    HideCursor();
 
     LoadAssets();
 
@@ -40,9 +44,11 @@ int main() {
         ClearBackground(BLACK);
 
         UpdateScreen(currentScreen);
+        DrawCursor();
         EndDrawing();
     }
 
+    ShutdownScreens();
     ShutdownNetwork();
     ShutdownLeaderboard();
     UnloadAssets();

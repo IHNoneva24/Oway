@@ -6,3 +6,6 @@ void InitScreens(int width, int height);
 
 // Draw screen
 void UpdateScreen(Screen& currentScreen);
+
+// Free screens memory
+void ShutdownScreens();

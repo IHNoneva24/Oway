@@ -1,6 +1,10 @@
 #include "screen.h"
 #include "screens.h"
 #include "raylib.h"
+#include "menuBackground.h"
+#include "Game.h"
+#include "RaceGame.h"
+#include "TeamGame.h"
 
 int screenW;
 int screenH;
@@ -49,4 +53,15 @@ void UpdateScreen(Screen& currentScreen) {
 		DrawRectangle(0, 0, screenW, screenH, Fade(BLACK, 0.8f * fadeTimer / FADE_TIME));
 		fadeTimer -= GetFrameTime();
 	}
+}
+
+// Free screens memory
+void ShutdownScreens() {
+	// a game can still be running when the window closes
+	EndGameSession(GetCurrentSession());
+	EndRaceSession(GetCurrentRaceSession());
+	EndTeamSession(GetCurrentTeamSession());
+
+	UnloadSizeSelect();
+	UnloadMenuBackground();
 }

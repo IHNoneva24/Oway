@@ -24,7 +24,7 @@ void DrawMainMenu(Screen& currentScreen) {
 	float y = screenH * 0.45f;
 	float step = Scaled(95);
 
-	if (DrawCenteredButton(y, "Play")) {
+	if (DrawCenteredButton(y, "Play") || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
 		currentScreen = MODESELECT;
 	}
 
@@ -40,6 +40,6 @@ void DrawMainMenu(Screen& currentScreen) {
 		currentScreen = EXITGAME;
 	}
 
-	DrawText("F11 - fullscreen / window", static_cast<int>(Scaled(20)), screenH - static_cast<int>(Scaled(40)),
+	DrawText("Enter - play     F11 - fullscreen / window", static_cast<int>(Scaled(20)), screenH - static_cast<int>(Scaled(40)),
 		static_cast<int>(Scaled(22)), COLOR_TEXT_DIM);
 }

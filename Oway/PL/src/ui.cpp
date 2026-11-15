@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "assets.h"
+#include "menuBackground.h"
 #include <cstring>
 
 // from screen.cpp
@@ -53,17 +54,24 @@ void DrawCenteredText(const char* text, float y, float fontSize, Color color) {
 
 // Draw background
 void DrawDungeonBackground() {
-	const GameAssets& assets = GetAssets();
-	float tile = Scaled(64);
+	DrawMenuBackground();
+}
 
-	for (float y = 0; y < screenH; y += tile) {
-		for (float x = 0; x < screenW; x += tile) {
-			int variant = static_cast<int>(x / tile + y / tile) % 3;
-			DrawTile(assets.tileset, 6 + variant, 0, { x, y, tile, tile });
-		}
-	}
+// Gold button
+bool DrawAccentButton(Rectangle rect, const char* text, bool isEnabled) {
+	bool isHover = isEnabled && CheckCollisionPointRec(GetMousePosition(), rect);
+	Color background = !isEnabled ? Color{ 70, 56, 60, 255 } : (isHover ? Color{ 255, 210, 110, 255 } : COLOR_ACCENT);
 
-	DrawRectangle(0, 0, screenW, screenH, { 10, 6, 12, 150 });
+	DrawRectangleRec({ rect.x + Scaled(5), rect.y + Scaled(5), rect.width, rect.height }, { 0, 0, 0, 120 });
+	DrawRectangleRec(rect, background);
+	DrawRectangleLinesEx(rect, Scaled(3), { 50, 30, 30, 255 });
+
+	int fontSize = static_cast<int>(rect.height * 0.5f);
+	int textWidth = MeasureText(text, fontSize);
+	DrawText(text, static_cast<int>(rect.x + rect.width / 2 - textWidth / 2),
+		static_cast<int>(rect.y + rect.height / 2 - fontSize / 2.0f), fontSize, isEnabled ? Color{ 30, 18, 20, 255 } : COLOR_TEXT_DIM);
+
+	return isHover && IsMouseButtonReleased(MOUSE_LEFT_BUTTON);
 }
 
 // Draw panel

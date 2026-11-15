@@ -36,6 +36,7 @@
     <ClCompile Include="src\sizeSelect.cpp" />
     <ClCompile Include="src\mainMenu.cpp" />
     <ClCompile Include="src\ui.cpp" />
+    <ClCompile Include="src\menuBackground.cpp" />
     <ClCompile Include="src\screen.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
@@ -50,6 +51,7 @@
     <ClInclude Include="include\lanSession.h" />
     <ClInclude Include="include\assets.h" />
     <ClInclude Include="include\ui.h" />
+    <ClInclude Include="include\menuBackground.h" />
     <ClInclude Include="include\screen.h" />
     <ClInclude Include="include\enum.h" />
     <ClInclude Include="include\screens.h" />

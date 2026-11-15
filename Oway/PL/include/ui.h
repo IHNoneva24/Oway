@@ -27,6 +27,9 @@ void DrawCenteredText(const char* text, float y, float fontSize, Color color);
 // Draw background
 void DrawDungeonBackground();
 
+// Gold button
+bool DrawAccentButton(Rectangle rect, const char* text, bool isEnabled = true);
+
 // Draw panel
 void DrawPanel(Rectangle rect);
 
